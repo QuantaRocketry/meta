@@ -1,7 +1,3 @@
-//! This example test the RP Pico on board LED.
-//!
-//! It does not work with the RP Pico W board. See `blinky_wifi.rs`.
-
 #![no_std]
 #![no_main]
 
@@ -9,8 +5,20 @@ use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::gpio;
 use embassy_time::Timer;
+use embassy_usb::Config;
 use gpio::{Level, Output};
+use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
+
+mod resources;
+mod system;
+
+use crate::system::{System, interface, state_machine};
+use crate::system::{indicator::LEDIndicator, state_machine::StateMachine};
+use crate::{
+    resources::{AssignedResources, IndicatorResources, InterfaceResources, LoraResources},
+    system::indicator,
+};
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recomended to have these minimal entries.
@@ -26,17 +34,16 @@ pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
 ];
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
-    let mut led = Output::new(p.PIN_25, Level::Low);
+    let r = split_resources!(p);
 
-    loop {
-        info!("led on!");
-        led.set_high();
-        Timer::after_millis(250).await;
+    state_machine::start(&spawner);
+    LEDIndicator::start(&spawner, r.indicators).await;
 
-        info!("led off!");
-        led.set_low();
-        Timer::after_millis(250).await;
-    }
+    let opts = interface::USBOpts {acm: true, ncm: false};
+    let mut interface = interface::USBInterface::new("Quanta", "Warp", opts);
+    interface.start(&spawner, r.interface).expect("Spawner failed.");
+
+    system::start(&spawner).await.expect("Spawner failed.");
 }
