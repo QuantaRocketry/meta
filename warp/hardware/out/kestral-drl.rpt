@@ -1,0 +1,27 @@
+Drill report for kestral.kicad_pcb
+Created on 2024-10-01T21:11:07+1000
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  GND                       in1
+    L3 :  3V3                       in2
+    L4 :  B.Cu                      back
+
+
+Drill file 'kestral-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.300mm  0.0118"  (88 holes)
+    T2  0.600mm  0.0236"  (4 holes)  (with 4 slots)
+    T3  1.295mm  0.0510"  (2 holes)
+
+    Total plated holes count 94
+
+
+Drill file 'kestral-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  0.650mm  0.0256"  (2 holes)
+
+    Total unplated holes count 2

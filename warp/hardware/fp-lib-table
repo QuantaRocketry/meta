@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Entangler")(type "KiCad")(uri "${KIPRJMOD}/Entangler.pretty")(options "")(descr ""))
+)
