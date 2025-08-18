@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
@@ -16,8 +16,7 @@
             gdb
             rust-analyzer
             rustfmt
-            probe-run
-            probe-rs
+            probe-rs-tools
             cmake
             minicom
             # flip-link
