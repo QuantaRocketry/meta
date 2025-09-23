@@ -1,9 +1,9 @@
 use embassy_executor::{SpawnError, Spawner};
 use embassy_rp::peripherals::USB;
-use embassy_rp::usb::Driver;
+use embassy_usb::UsbDevice;
 use embassy_usb::class::cdc_acm::{self, CdcAcmClass};
 use embassy_usb::class::cdc_ncm::{self, CdcNcmClass};
-use embassy_usb::UsbDevice;
+use embassy_usb_driver::Driver;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
@@ -12,27 +12,20 @@ use crate::resources::{InterfaceResources, Irqs};
 pub mod acm;
 pub mod ncm;
 
-pub struct USBInterface {
-    pub opts: USBOpts,
-    pub usb_config: embassy_usb::Config<'static>,
+pub struct USBInterface<'d, D: Driver<'d>> {
+    acm: Option<CdcAcmClass<'d, D>>,
+    ncm: Option<CdcNcmClass<'d, D>>,
 }
 
-#[derive(Default)]
-pub struct USBOpts {
-    pub acm: bool,
-    pub ncm: bool,
-}
-
-impl USBInterface {
-    pub fn new(manufacturer: &'static str, product: &'static str, opts: USBOpts) -> Self {
-        let mut usb_config = embassy_usb::Config::new(0xc0de, 0xcafe);
-        usb_config.manufacturer = Some(manufacturer);
-        usb_config.product = Some(product);
-        usb_config.serial_number = None;
-        usb_config.max_power = 100;
-        usb_config.max_packet_size_0 = 64;
-
-        USBInterface { opts, usb_config }
+impl<'d, D: Driver<'d>> USBInterface<'d, D> {
+    pub fn new(
+        acm_class: Option<CdcAcmClass<'d, D>>,
+        ncm_class: Option<CdcNcmClass<'d, D>>,
+    ) -> Self {
+        Self {
+            acm: acm_class,
+            ncm: ncm_class,
+        }
     }
 
     pub fn start(&mut self, spawner: &Spawner, r: InterfaceResources) -> Result<(), SpawnError> {
@@ -88,9 +81,15 @@ impl USBInterface {
         ncm_res?;
         Ok(())
     }
-}
 
-#[embassy_executor::task]
-async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) -> ! {
-    usb.run().await
+    pub async fn run(&mut self) -> ! {
+        let Self {acm, ncm } = self;
+        if let Some(acm_class) = acm {
+            acm::run(acm_class);
+        }
+        // if let Some(ncm_class) = ncm {
+        //     ncm::run(ncm_class);
+        // }
+        loop{}
+    }
 }

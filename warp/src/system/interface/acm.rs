@@ -2,13 +2,12 @@ use crate::system;
 use defmt::*;
 use embassy_executor::{SpawnError, Spawner};
 use embassy_rp::peripherals::USB;
-use embassy_rp::usb::Driver;
 use embassy_usb::class::cdc_acm::CdcAcmClass;
+use embassy_usb_driver::Driver;
 
 use {defmt_rtt as _, panic_probe as _};
 
-#[embassy_executor::task]
-pub async fn task(mut class: CdcAcmClass<'static, Driver<'static, USB>>) {
+pub(super) async fn run<'d, D: Driver<'d>>(class: &mut CdcAcmClass<'d, D>) {
     let mut buf = [0; 64];
     // let event_publisher = unwrap!(event::EVENT_CHANNEL.publisher());
 

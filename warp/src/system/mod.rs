@@ -3,6 +3,8 @@ use embassy_executor::{SpawnError, Spawner};
 use embassy_rp::gpio::{Level, Output};
 use embassy_sync::channel::Channel;
 use embassy_sync::{blocking_mutex::raw::ThreadModeRawMutex, mutex::Mutex, mutex::MutexGuard};
+use embassy_time::{Duration, Timer};
+use embedded_hal::digital::StatefulOutputPin;
 
 pub mod indicator;
 pub mod interface;
@@ -10,10 +12,11 @@ pub mod state;
 pub mod state_machine;
 
 use crate::system;
+use crate::system::indicator::LEDIndicator;
 use crate::system::state_machine::StateMachine;
 use crate::{
     resources::AssignedResources,
-    system::{indicator::IndicatorTrait, interface::USBInterface},
+    system::{indicator::IndicatorTrait},
 };
 
 #[derive(Copy, Clone, Format)]
@@ -49,39 +52,26 @@ pub struct XYZMeasurement {
     z: f32,
 }
 
-#[derive(Default, Copy, Clone, Format)]
-pub struct System;
-
-static SYSTEM_MUTEX: Mutex<ThreadModeRawMutex, Option<System>> = Mutex::new(None);
-static SYSTEM_CHANNEL: Channel<ThreadModeRawMutex, Event, 10> = Channel::new();
-
-impl System {}
-
-pub async fn start(spawner: &Spawner) -> Result<(), SpawnError> {
-    let system = System;
-    *(SYSTEM_MUTEX.lock().await) = Some(system);
-    spawner.spawn(system_task())?;
-
-    Ok(())
+pub struct System {
+    indicator_notifier: &'static indicator::IndicatorNotifier,
 }
 
-pub async fn send_event(event: Event) {
-    SYSTEM_CHANNEL.send(event).await;
-}
+impl System {
+    pub fn new(indicator_notifier: &'static indicator::IndicatorNotifier) -> Self {
+        Self { indicator_notifier }
+    }
 
-#[embassy_executor::task(pool_size = 1)]
-async fn system_task() {
-    let event_receiver = SYSTEM_CHANNEL.receiver();
+    pub async fn run(&mut self) -> ! {
+        let mut temp_state = system::State::Initializing;
+        loop {
+            Timer::after(Duration::from_millis(5000)).await;
 
-    loop {
-        // receive the events, halting the task until an event is received
-        let event = event_receiver.receive().await;
-
-        match event {
-            Event::Measurement(sensor_measurement) => {
-                state_machine::update(sensor_measurement).await
+            match temp_state {
+                State::Initializing => temp_state = State::Okay,
+                State::Okay => temp_state = State::Error(Error::Alloc),
+                State::Error(_) => temp_state = State::Initializing,
             }
-            Event::StateUpdate(_) => system::indicator::indicate_event(event).await,
+            self.indicator_notifier.signal(temp_state);
         }
     }
 }
