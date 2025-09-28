@@ -1,0 +1,6 @@
+.vscode
+target
+
+# kicad
+fp-info-cache
+*-backups
