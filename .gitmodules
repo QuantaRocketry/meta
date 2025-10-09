@@ -1,0 +1,6 @@
+[submodule "entangler/hardware/Library/entangler/hardware/Library/RP2350_KiCad"]
+	path = entangler/hardware/Library/entangler/hardware/Library/RP2350_KiCad
+	url = https://github.com/HDR/RP2350_KiCad.git
+[submodule "entangler/hardware/Library/RP2350_KiCad"]
+	path = entangler/hardware/Library/RP2350_KiCad
+	url = https://github.com/HDR/RP2350_KiCad.git

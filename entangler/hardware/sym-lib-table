@@ -1,0 +1,7 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Entangler")(type "KiCad")(uri "${KIPRJMOD}/entangler.kicad_sym")(options "")(descr ""))
+  (lib (name "RP2350B")(type "KiCad")(uri "${KIPRJMOD}/Library/RP2350_KiCad/rp2350b-qfn80.kicad_sym")(options "")(descr ""))
+  (lib (name "S2B-PH-SM4-TB")(type "KiCad")(uri "${KIPRJMOD}/Library/S2B-PH-SM4-TB/S2B-PH-SM4-TB.kicad_sym")(options "")(descr ""))
+  (lib (name "LC86G")(type "KiCad")(uri "${KIPRJMOD}/Library/LC86G/LC86G.kicad_sym")(options "")(descr ""))
+)
