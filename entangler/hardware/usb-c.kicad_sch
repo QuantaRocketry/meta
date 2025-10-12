@@ -963,7 +963,7 @@
 		(uuid "fc8fb966-62d9-4517-aa4a-4eb4f1f67562")
 	)
 	(hierarchical_label "USB_DP"
-		(shape input)
+		(shape passive)
 		(at 149.86 95.25 0)
 		(effects
 			(font
@@ -974,7 +974,7 @@
 		(uuid "4996bfcd-2061-4fc8-9ea1-a6e4d09a4428")
 	)
 	(hierarchical_label "VBUS"
-		(shape input)
+		(shape output)
 		(at 146.05 74.93 0)
 		(effects
 			(font
@@ -985,7 +985,7 @@
 		(uuid "5580fa19-627a-4a64-8fcf-f5ae6bcf7e39")
 	)
 	(hierarchical_label "USB_DM"
-		(shape input)
+		(shape passive)
 		(at 149.86 90.17 0)
 		(effects
 			(font
@@ -1050,11 +1050,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "d204571f-5f67-496f-a378-c9f8036b8880")
+			(uuid "9bf41926-8f51-4e4b-bc1c-1c985da943cf")
 		)
 		(instances
 			(project "entangler"
-				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/784eece9-66d1-4adf-8604-61719dcabce2"
+				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/fd15bdc7-b0bd-4057-872a-7c903c2848ee"
 					(reference "#PWR05")
 					(unit 1)
 				)
@@ -1116,11 +1116,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "196c4201-949d-4422-a3d2-02e301bbe8fb")
+			(uuid "2449c461-2d92-4826-a6ea-5f810f1e4330")
 		)
 		(instances
 			(project "entangler"
-				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/784eece9-66d1-4adf-8604-61719dcabce2"
+				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/fd15bdc7-b0bd-4057-872a-7c903c2848ee"
 					(reference "#PWR06")
 					(unit 1)
 				)
@@ -1190,53 +1190,53 @@
 			)
 		)
 		(pin "B4"
-			(uuid "4679c42e-8cd2-4093-9ab9-56353078c5e5")
+			(uuid "91504539-fcfd-4063-9f3a-02f8ef517cc6")
 		)
 		(pin "A6"
-			(uuid "21754e1b-4394-4374-b9f3-b04d8486bff5")
+			(uuid "4e07298b-962f-4b57-a399-f57315c21668")
 		)
 		(pin "A5"
-			(uuid "26680ef1-4f96-4977-b182-aac407859e18")
+			(uuid "af709fcd-01ee-48ea-aebe-a1c35be00574")
 		)
 		(pin "B5"
-			(uuid "0ecfb4de-3cf2-46d8-94ec-8c0fca423e3d")
+			(uuid "045864ba-6681-4af6-9717-7031fb388567")
 		)
 		(pin "A9"
-			(uuid "3d086ca5-53cf-4243-83ba-5968564bd4ed")
+			(uuid "e84c364e-1f2b-44a8-a7cb-60c1f5a0750d")
 		)
 		(pin "A7"
-			(uuid "dd96d4e8-858a-45c9-9c7d-cf3940811bb0")
+			(uuid "52b769b9-a6c0-4752-82c0-ef44b886058f")
 		)
 		(pin "B1"
-			(uuid "07126710-88cd-4208-8da2-ab2c68ac46c7")
+			(uuid "cc96ef4b-0e1f-4442-851f-2ad39e50e88e")
 		)
 		(pin "B6"
-			(uuid "57990c32-b7d6-446c-871e-6574ddd55aa8")
+			(uuid "ab6527bb-4110-48bf-b682-d7edc1c0810d")
 		)
 		(pin "B12"
-			(uuid "37b689be-fb8a-4158-9bc0-277018c94214")
+			(uuid "15d6c5ab-a194-48b3-9451-2a56a17f9988")
 		)
 		(pin "B7"
-			(uuid "586bb360-c92a-4d30-83c9-1d60cb8e775f")
+			(uuid "9275e5a2-d614-4ebb-ab06-ce5d280e2581")
 		)
 		(pin "A4"
-			(uuid "2b4648b3-bf47-4487-9429-cd264de6bdf4")
+			(uuid "5164461a-80a0-433c-9d66-2d9c8b424749")
 		)
 		(pin "B9"
-			(uuid "fe75fb67-9a41-4fa2-b51b-f042d9cb6544")
+			(uuid "d1c9e156-738a-463e-99a7-a86edc59f099")
 		)
 		(pin "A12"
-			(uuid "47da96a4-7844-4277-86a9-37f11d6484e9")
+			(uuid "17f59e3f-27dc-45e0-ba9b-89752e4ab176")
 		)
 		(pin "S1"
-			(uuid "82614813-931c-42a8-9b27-d619e8fad016")
+			(uuid "0894f3b5-742e-4e10-b2b6-e390a20afd2d")
 		)
 		(pin "A1"
-			(uuid "3cbd1578-6004-4287-9473-de7f33d47b61")
+			(uuid "9e3f21df-024d-479b-97ec-cd4e95c5ba99")
 		)
 		(instances
 			(project "entangler"
-				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/784eece9-66d1-4adf-8604-61719dcabce2"
+				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/fd15bdc7-b0bd-4057-872a-7c903c2848ee"
 					(reference "J3")
 					(unit 1)
 				)
@@ -1305,14 +1305,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "d43b21fe-7745-43c6-862b-417f5ac6a9f4")
+			(uuid "a66679ad-6c0e-4d4d-9a02-8012b82265e9")
 		)
 		(pin "2"
-			(uuid "9d43b9f4-58d1-4135-97b6-c964888f24b4")
+			(uuid "1b7c9435-2cab-4c30-b5cd-91dbf941c45f")
 		)
 		(instances
 			(project "entangler"
-				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/784eece9-66d1-4adf-8604-61719dcabce2"
+				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/fd15bdc7-b0bd-4057-872a-7c903c2848ee"
 					(reference "R2")
 					(unit 1)
 				)
@@ -1381,14 +1381,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "79dda0db-84aa-45ab-8708-617beaecac31")
+			(uuid "b8072227-4524-422e-9e45-7bb168ab1d2f")
 		)
 		(pin "2"
-			(uuid "54fd6bb0-affc-4945-a9e1-58a1de61a1b1")
+			(uuid "2a4242e0-c24e-4d61-ab90-0a8b8401ca30")
 		)
 		(instances
 			(project "entangler"
-				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/784eece9-66d1-4adf-8604-61719dcabce2"
+				(path "/4b7f53f4-57b9-4873-88d3-e26b51eb832b/fd15bdc7-b0bd-4057-872a-7c903c2848ee"
 					(reference "R1")
 					(unit 1)
 				)

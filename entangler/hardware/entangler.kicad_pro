@@ -666,12 +666,16 @@
       "Root"
     ],
     [
-      "784eece9-66d1-4adf-8604-61719dcabce2",
+      "fd15bdc7-b0bd-4057-872a-7c903c2848ee",
       "USB C"
     ],
     [
       "3089445d-1e9d-4f45-b7e6-221a0fcb749c",
       "MCU"
+    ],
+    [
+      "ccc76763-53d2-4489-b3b7-d88cd1132e1c",
+      "BCC"
     ]
   ],
   "text_variables": {}
