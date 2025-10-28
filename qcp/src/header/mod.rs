@@ -1,19 +1,20 @@
-use crate::{error::Error, message::Message, message::MessageType};
+use crate::{
+    error::Error,
+    packet::{Packet, PacketID},
+};
 mod version;
-pub use version::ProtocolVersion;
-
 use core::mem::size_of;
-use zerocopy::*;
+use prost::bytes::{Buf, BufMut};
+pub use version::ProtocolVersion;
 
 pub const HEADER_SIZE: usize = 6;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Immutable, KnownLayout, IntoBytes)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(C, packed(1))]
 pub struct Header {
-    pub lrc: u8,
     pub version: ProtocolVersion,
-    pub length: u8,
-    pub message_type: MessageType,
+    pub length: u16,
+    pub message_type: PacketID,
     pub crc16: u16,
 }
 
@@ -23,29 +24,31 @@ const _: () = assert!(
 );
 
 impl Header {
-    pub fn try_from_bytes(buf: &[u8]) -> Result<Self, Error> {
-        if buf.len() != size_of::<Header>() {
-            return Err(Error::BufferTooSmall);
+    pub fn encode(&self, buf: &mut impl BufMut) -> Result<usize, Error> {
+        let remaining = buf.remaining_mut();
+        if remaining < size_of::<Self>() {
+            return Err(Error::InvalidBufferSize);
+        };
+
+        buf.put_u8(self.version as u8);
+        buf.put_u16(self.length);
+        buf.put_u8(self.message_type as u8);
+        buf.put_u16(self.crc16);
+
+        Ok(1)
+    }
+
+    pub fn decode(mut buf: impl Buf) -> Result<Self, Error> {
+        if buf.remaining() < size_of::<Self>() {
+            return Err(Error::InvalidBufferSize);
         }
 
-        let lrc = buf[0];
-
-        let version = ProtocolVersion::try_ref_from_bytes(&buf[1..2])
-            .map_err(|_| Error::UnknownVersion(buf[1]))?
-            .clone();
-
-        let length = buf[2];
-
-        let message_type = MessageType::try_ref_from_bytes(&buf[3..4])
-            .map_err(|_| Error::UnknownMessageType(buf[3]))?
-            .clone();
-
-        let crc16 = u16::ref_from_bytes(&buf[4..])
-            .map_err(|_| Error::InvalidCRC16)?
-            .clone();
+        let version: ProtocolVersion = buf.try_get_u8()?.try_into()?;
+        let length = buf.try_get_u16()?;
+        let message_type: PacketID = buf.try_get_u8()?.try_into()?;
+        let crc16 = buf.try_get_u16()?;
 
         Ok(Header {
-            lrc,
             version,
             length,
             message_type,
@@ -54,14 +57,13 @@ impl Header {
     }
 }
 
-impl From<&Message> for Header {
-    fn from(msg: &Message) -> Self {
+impl From<&Packet> for Header {
+    fn from(p: &Packet) -> Self {
         let todo = true; // TODO calculate all the checks
         Header {
-            lrc: 0,
             version: ProtocolVersion::CURRENT_VERSION,
             length: 0,
-            message_type: MessageType::from(msg),
+            message_type: PacketID::from(p),
             crc16: 0,
         }
     }
@@ -76,17 +78,17 @@ mod tests {
     #[test]
     fn direct() {
         let mut buf: [u8; PACKET_SIZE_MAX] = [0; PACKET_SIZE_MAX];
+        let mut slice = &mut buf[..];
 
         std::println!("{:?}", size_of::<Header>());
 
         let header = Header {
-            lrc: 0,
             version: ProtocolVersion::V1,
             length: 1,
-            message_type: MessageType::Heartbeat,
+            message_type: PacketID::Heartbeat,
             crc16: 0,
         };
 
-        header.write_to(&mut buf[..size_of::<Header>()]).unwrap();
+        header.encode(&mut slice).unwrap();
     }
 }

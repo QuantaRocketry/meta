@@ -1,9 +1,7 @@
-use zerocopy::*;
-
 use crate::error::Error;
 
 /// The identifying byte for the protocol.
-#[derive(Debug, PartialEq, Eq, Clone, Copy, TryFromBytes, Immutable, IntoBytes, KnownLayout)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(u8)]
 pub enum ProtocolVersion {
     V1 = 0x01,

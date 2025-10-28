@@ -1,17 +1,4 @@
-use super::MessageTrait;
-
-use defmt::*;
-use zerocopy::*;
-
-#[derive(
-    Debug, Eq, PartialEq, Copy, Clone, Format, FromBytes, IntoBytes, KnownLayout, Immutable,
-)]
-#[repr(C)]
-pub struct Heartbeat {
-    pub uptime: u32,
-}
-
-impl MessageTrait for Heartbeat {}
+use super::*;
 
 #[cfg(test)]
 mod tests {
@@ -43,6 +30,8 @@ mod tests {
             .unwrap();
 
         std::assert_eq!(&[150, 234, 202, 0], &buf[HEADER_SIZE..HEADER_SIZE + 4]);
+
+        std::println!("{:?}", &buf);
 
         let out = Message::try_decode_from_bytes(&buf).unwrap();
 

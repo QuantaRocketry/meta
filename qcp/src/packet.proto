@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package packet;
+
+// Packet 1
+message Heartbeat {
+    uint32 uptime = 1;
+}
+
+// Packet 2
+message Request {
+    repeated uint32 messages = 1;
+}
+
+// Packet 3
+message GNSS {
+    float latitude = 1;
+    float longitude = 2;
+    float altitude = 3;
+}
