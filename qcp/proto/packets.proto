@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package packet;
+package packets;
 
 // Packet 1
 message Heartbeat {
@@ -9,7 +9,7 @@ message Heartbeat {
 
 // Packet 2
 message Request {
-    repeated uint32 messages = 1;
+    repeated uint32 packet_ids = 1;
 }
 
 // Packet 3

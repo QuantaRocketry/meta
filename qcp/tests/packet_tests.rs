@@ -4,42 +4,70 @@ mod tests {
     use prost::Message;
     use qcp::{
         PACKET_SIZE_MAX,
-        packet::{self, Packet},
-        header,
+        header::HEADER_SIZE,
+        packet::{self, Packet, PacketID},
     };
 
-    #[test]
-    fn direct() {
-        let mut buf = [0u8; PACKET_SIZE_MAX];
-        let p = packet::Heartbeat { uptime: 13298326 };
-        {
-            let mut slice = &mut buf[..];
-            p.encode(&mut slice).unwrap();
-        }
+    macro_rules! packet_test {
+        ($packet:ident, $data:expr, $expect:expr) => {
+            paste::item! {
+                #[test]
+                fn [< direct_ $packet:lower >] () {
+                    let mut buf = std::vec::Vec::with_capacity(PACKET_SIZE_MAX);
+                    let p = $data;
+                    p.encode(&mut buf).unwrap();
 
-        std::assert_eq!(5, p.encoded_len());
-        let encoded_data = &buf[..p.encoded_len()];
-        std::assert_eq!(&[0x08, 0x96, 0xd5, 0xab, 0x06], encoded_data);
+                    std::assert_eq!($expect, &buf[..]);
+                    std::assert_eq!($expect.len(), p.encoded_len());
 
-        std::println!("{:?}", buf);
-        // FIXME Why doesn't this work?
-        // let out = packet::Heartbeat::decode(&buf[..]);
-        let out = packet::Heartbeat::decode(&buf[..p.encoded_len()]);
-        std::assert_eq!(out, Ok(p));
+                    let out = packet::$packet::decode(&buf[..]);
+                    std::assert_eq!(out, Ok(p));
+                }
+
+                #[test]
+                fn [< indirect_ $packet:lower >] () {
+                    let mut buf = std::vec::Vec::with_capacity(PACKET_SIZE_MAX);
+                    let data = $data;
+                    let p = Packet::from(data);
+                    p.encode(&mut buf).unwrap();
+
+                    std::assert_eq!($expect, &buf[HEADER_SIZE..]);
+                    std::assert_eq!(HEADER_SIZE + $expect.len(), p.encoded_len());
+
+                    let out = Packet::decode(&buf[..]).unwrap();
+                    std::assert_eq!(
+                        out,
+                        Packet::$packet($data)
+                    );
+                }
+            }
+        };
     }
 
-    #[test]
-    fn indirect() {
-        let mut buf = std::vec::Vec::with_capacity(PACKET_SIZE_MAX);
-        Packet::Heartbeat(packet::Heartbeat { uptime: 13298326 })
-            .encode(&mut buf)
-            .unwrap();
+    packet_test!(
+        Heartbeat,
+        packet::Heartbeat { uptime: 13298326 },
+        &[0x08, 0x96, 0xd5, 0xab, 0x06]
+    );
 
-        std::assert_eq!(&[0x08, 0x96, 0xd5, 0xab, 0x06], &buf[header::HEADER_SIZE..]);
+    packet_test!(
+        Request,
+        packet::Request {
+            packet_ids: vec![PacketID::Gnss as u32]
+        },
+        &[0x0A, 0x01, 0x03]
+    );
 
-        std::println!("{:?}", &buf);
-
-        let out = Packet::decode(&*buf).unwrap();
-        std::assert_eq!(out, Packet::Heartbeat(packet::Heartbeat { uptime: 13298326 }));
-    }
+    packet_test!(
+        Gnss,
+        packet::Gnss {
+            latitude: 0.1f32,
+            longitude: 0.1f32,
+            altitude: 10.0f32,
+        },
+        &[
+            0x0D, 0xCD, 0xCC, 0xCC, 0x3D, 0x15, 0xCD, 0xCC, 0xCC, 0x3D, 0x1D, 0x00, 0x00, 0x20,
+            0x41
+        ]
+    );
 }

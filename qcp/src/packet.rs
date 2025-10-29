@@ -82,6 +82,14 @@ macro_rules! define_packet_ids {
                     Packet::$variant(value)
                 }
             }
+
+            // FIXME Should this be possible?
+            // impl From<&data::$variant> for Packet {
+            //     #[inline]
+            //     fn from(value: &data::$variant) -> Self {
+            //         Packet::$variant(value.clone())
+            //     }
+            // }
         )*
 
         impl TryFrom<&[u8]> for Packet {
@@ -99,6 +107,14 @@ macro_rules! define_packet_ids {
         }
 
         impl Packet {
+            pub fn encoded_len(&self) -> usize {
+                header::HEADER_SIZE + match self {
+                    $(
+                        Self::$variant(data) => data.encoded_len(),
+                    )*
+                }
+            }
+
             pub fn encode(&self, buf: &mut impl BufMut) -> Result<usize, error::Error> {
                 let h = header::Header::from(self);
                 h.encode(buf)?;
