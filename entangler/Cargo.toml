@@ -4,3 +4,4 @@ edition = "2024"
 members = ["common", "entangler-waveshare"]
 
 [workspace.dependencies]
+qcp = { path = "../qcp" }
