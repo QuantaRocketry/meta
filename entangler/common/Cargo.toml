@@ -11,9 +11,15 @@ embedded-text = "0.7.2"
 tinybmp = "0.6.0"
 tinytga = "0.5.0"
 qcp = { workspace = true }
+buoyant = "0.5.3"
+embedded-touch = "0.3.0"
 
 [dev-dependencies]
 embedded-graphics-simulator = "0.8.0"
+
+[features]
+default = ["rgb888"]
+rgb888 = []
 
 [[example]]
 name = "native"

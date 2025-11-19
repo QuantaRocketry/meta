@@ -5,21 +5,8 @@ use embedded_graphics::{
     text::Text,
 };
 
-pub struct DisplayTheme<C> {
-    pub primary: C,
-    pub secondary: C,
-    pub background: C,
-}
-
-impl<C: RgbColor> Default for DisplayTheme<C> {
-    fn default() -> Self {
-        Self {
-            primary: RgbColor::BLACK,
-            secondary: RgbColor::BLACK,
-            background: RgbColor::WHITE,
-        }
-    }
-}
+pub mod app;
+pub mod event;
 
 // Signal of a point of interest
 #[derive(Clone)]
@@ -35,7 +22,7 @@ pub struct Display<'a, D, C> {
     /// The target to draw to
     target: D,
     /// The theme to apply to the display
-    theme: DisplayTheme<C>,
+    theme: app::Theme<C>,
     /// The margin from the edge of the target in px
     margin: i32,
     /// The current POI being tracked
@@ -47,7 +34,7 @@ where
     D: DrawTarget<Color = C>,
     C: PixelColor,
 {
-    pub fn new(target: D, theme: DisplayTheme<C>, margin: i32) -> Self {
+    pub fn new(target: D, theme: app::Theme<C>, margin: i32) -> Self {
         Display {
             target,
             theme,
@@ -103,7 +90,7 @@ where
                 }
             }
         } else {
-            self.draw_uid("")?;
+            self.draw_uid("None Selected")?;
             self.draw_snr(None)?;
             self.draw_rssi(None)?;
             for s in signals {
