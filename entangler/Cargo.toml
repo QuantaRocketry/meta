@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 edition = "2024"
-members = ["common", "entangler-waveshare"]
+members = ["entangler-common", "entangler-waveshare", "entangler-simulation"]
 
 [workspace.dependencies]
 qcp = { path = "../qcp" }

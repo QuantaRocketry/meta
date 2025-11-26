@@ -9,8 +9,8 @@ sudo dnf install \
     SDL2-devel # if you want to run the simulator
 ```
 
-## Run the native simulator
+## Run the simulation
 
 ```bash
-cargo run --example native
+cargo run -p entangler-simulation
 ```

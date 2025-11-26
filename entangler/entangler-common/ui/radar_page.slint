@@ -1,0 +1,57 @@
+import { Globals, Button, Theme, Toggle, UIPalette, Page } from "common.slint";
+
+export component RadarPage inherits Page {
+    background: grey;
+    HorizontalLayout {
+        alignment: center;
+        VerticalLayout {
+            // alignment: space-around;
+            Button {
+                text: "Hello, World";
+                font-size: Theme.font-size-standard;
+                height: 20px;
+                animate height {
+                    duration: 100ms;
+                    easing: ease-in;
+                }
+                states [
+                    left-aligned when self.pressed: {
+                        height: 80px;
+                    }
+                ]
+            }
+
+            HorizontalLayout {
+                Text {
+                    // width: 300px;
+                    text: "Hardware Green Led";
+                    font-size: Theme.font-size-standard;
+                }
+
+                Toggle {
+                    // width: 100px;
+                    clicked => {
+                        Globals.toggle-btn(self.on);
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                Text {
+                    // width: 100%;
+                    horizontal-stretch: 1;
+                    vertical-alignment: center;
+                    text: "Hardware User Button";
+                    font-size: Theme.font-size-standard;
+                }
+
+                Rectangle {
+                    height: UIPalette.button-height;
+                    width: self.height;
+                    background: Globals.hardware-user-btn-pressed ? blue : lightgray;
+                    border-radius: self.height / 2;
+                }
+            }
+        }
+    }
+}

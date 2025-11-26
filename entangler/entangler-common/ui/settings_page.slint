@@ -1,0 +1,21 @@
+import { Globals, Button, Theme, Toggle, UIPalette, Page } from "common.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export component SettingsPage inherits Page {
+    background: grey;
+    property <[int]> ints: [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    ScrollView {
+        width: 100%;
+        vertical-scrollbar-policy: always-off;
+        VerticalLayout {
+            width: 100%;
+            alignment: center;
+            for asd[i] in ints: Rectangle {
+                height: 50px;
+                width: 100%;
+                border-width: 1px;
+                border-color: blue;
+            }
+        }
+    }
+}
