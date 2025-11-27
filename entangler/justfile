@@ -1,0 +1,5 @@
+sim:
+    cargo run -p entangler-simulation
+
+esp:
+    cd entangler-waveshare-esp32s3 && cargo run --release
