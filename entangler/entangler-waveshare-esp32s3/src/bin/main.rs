@@ -7,10 +7,9 @@
 )]
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
+use embassy_time::{Duration, Instant, Timer};
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
-use esp_hal::delay::Delay;
 use esp_hal::gpio::{Level, Output, OutputConfig};
 use esp_hal::spi::{
     Mode,
@@ -21,12 +20,13 @@ use esp_hal::timer::timg::TimerGroup;
 
 use embedded_graphics::{pixelcolor, prelude::*};
 use embedded_hal_bus::spi::ExclusiveDevice;
+use mipidsi::Builder;
 use mipidsi::interface::SpiInterface;
-use mipidsi::{Builder, models::ST7789};
 
-type COLOR_SPACE = pixelcolor::Rgb565;
-
+use entangler_waveshare_esp32s3::display::JD9853;
 use log::info;
+
+type ColorSpace = pixelcolor::Rgb565;
 
 extern crate alloc;
 
@@ -57,14 +57,14 @@ async fn main(spawner: Spawner) -> ! {
     let cs = Output::new(peripherals.GPIO21, Level::High, OutputConfig::default());
     let dc = Output::new(peripherals.GPIO45, Level::High, OutputConfig::default());
     let lcd_backlight = Output::new(peripherals.GPIO46, Level::High, OutputConfig::default());
-    let rst = Output::new(peripherals.GPIO47, Level::High, OutputConfig::default());
-    
+    let rst = Output::new(peripherals.GPIO40, Level::High, OutputConfig::default());
+
     info!("Pins made!");
 
     let mut spi = Spi::new(
         peripherals.SPI2,
         Config::default()
-            .with_frequency(Rate::from_khz(100))
+            .with_frequency(Rate::from_mhz(40))
             .with_mode(Mode::_0),
     )
     .unwrap()
@@ -76,27 +76,30 @@ async fn main(spawner: Spawner) -> ! {
 
     info!("Exclusive device made!");
 
-    let mut buffer = [0_u8; 512];
+    let mut buffer = [0_u8; 1024];
 
-    // // Create a DisplayInterface from SPI and DC pin, with no manual CS control
+    // Create a DisplayInterface from SPI and DC pin, with no manual CS control
     let di = SpiInterface::new(spi_device, dc, &mut buffer);
 
-    let mut display = Builder::new(ST7789, di)
+    let mut display = Builder::new(JD9853, di)
         .reset_pin(rst)
         .color_order(mipidsi::options::ColorOrder::Bgr)
+        .display_offset(34, 0)
+        .display_size(172, 320)
         .init(&mut delay)
         .unwrap();
 
-    info!("Clearing ...");
-
-    // // Clear the display to black
-    display.clear(COLOR_SPACE::RED).expect("Failed to clear display");
-
-    info!("Cleared!");
-
+    let cols = [ColorSpace::RED, ColorSpace::GREEN, ColorSpace::BLUE];
     loop {
-        info!("Hello world!");
-        Timer::after(Duration::from_secs(1)).await;
+        for col in cols {
+            let start = Instant::now();
+            display.clear(col).expect("Failed to clear display");
+            info!(
+                "{} Cleared! Took {} sec",
+                Instant::now().as_millis() as f32 / 1000.0,
+                (Instant::now() - start).as_millis() as f32 / 1000.0
+            );
+            Timer::after(Duration::from_millis(500)).await;
+        }
     }
 }
-

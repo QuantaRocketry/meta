@@ -1,4 +1,53 @@
-// Provides the builder for DisplayInterface
-use mipidsi::interface::{Generic8BitBus, ParallelInterface};
-// Provides the builder for Display
-use mipidsi::{Builder, models::ST7789};
+use embedded_graphics_core::pixelcolor::Rgb565;
+use embedded_hal::delay::DelayNs;
+
+use mipidsi::{
+    dcs::{
+        BitsPerPixel, EnterNormalMode, ExitSleepMode, InterfaceExt, PixelFormat, SetAddressMode,
+        SetDisplayOn, SetInvertMode, SetPixelFormat,
+    },
+    models::Model,
+};
+
+pub struct JD9853;
+
+impl Model for JD9853 {
+    type ColorFormat = Rgb565;
+
+    const FRAMEBUFFER_SIZE: (u16, u16) = (240, 320);
+
+    fn init<DELAY, DI>(
+        &mut self,
+        di: &mut DI,
+        delay: &mut DELAY,
+        options: &mipidsi::options::ModelOptions,
+    ) -> Result<mipidsi::dcs::SetAddressMode, DI::Error>
+    where
+        DELAY: DelayNs,
+        DI: mipidsi::interface::Interface,
+    {
+        let madctl = SetAddressMode::from(options);
+
+        delay.delay_us(150_000);
+
+        di.write_command(ExitSleepMode)?;
+        delay.delay_us(10_000);
+
+        // set hw scroll area based on framebuffer size
+        di.write_command(madctl)?;
+
+        di.write_command(SetInvertMode::new(options.invert_colors))?;
+
+        let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
+        di.write_command(SetPixelFormat::new(pf))?;
+        delay.delay_us(10_000);
+        di.write_command(EnterNormalMode)?;
+        delay.delay_us(10_000);
+        di.write_command(SetDisplayOn)?;
+
+        // DISPON requires some time otherwise we risk SPI data issues
+        delay.delay_us(120_000);
+
+        Ok(madctl)
+    }
+}
