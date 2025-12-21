@@ -6,7 +6,11 @@
     holding buffers for the duration of a data transfer."
 )]
 
+extern crate alloc;
+use entangler_waveshare_esp32s3::*;
+
 use embassy_executor::Spawner;
+use embassy_sync::signal::Signal;
 use embassy_time::{Duration, Instant, Timer};
 use esp_backtrace as _;
 use esp_hal::clock::CpuClock;
@@ -18,20 +22,24 @@ use esp_hal::spi::{
 use esp_hal::time::Rate;
 use esp_hal::timer::timg::TimerGroup;
 
+use alloc::rc::Rc;
+use alloc::vec::Vec;
+use static_cell::StaticCell;
 use embedded_graphics::{pixelcolor, prelude::*};
 use embedded_hal_bus::spi::ExclusiveDevice;
 use mipidsi::Builder;
 use mipidsi::interface::SpiInterface;
 
-use entangler_waveshare_esp32s3::display::JD9853;
-use log::info;
+use entangler_waveshare_esp32s3::display::{DISPLAY_WIDTH,DISPLAY_HEIGHT, model::JD9853};
 
 type ColorSpace = pixelcolor::Rgb565;
 
-extern crate alloc;
 
-// This creates a default app-descriptor required by the esp-idf bootloader.
-// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
+use embassy_executor::raw::Executor;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+static EXECUTOR: StaticCell<Executor> = StaticCell::new();
+static RENDER_FRAME: Signal<CriticalSectionRawMutex, Vec<ColorSpace>> = Signal::new();
+
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_rtos::main]
@@ -76,7 +84,7 @@ async fn main(spawner: Spawner) -> ! {
 
     info!("Exclusive device made!");
 
-    let mut buffer = [0_u8; 1024];
+    let mut buffer = [0_u8; (DISPLAY_HEIGHT*DISPLAY_WIDTH) as _];
 
     // Create a DisplayInterface from SPI and DC pin, with no manual CS control
     let di = SpiInterface::new(spi_device, dc, &mut buffer);
