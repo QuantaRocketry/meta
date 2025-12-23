@@ -1,0 +1,19 @@
+[package]
+name = "filter"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+defmt = "1.0.1"
+nalgebra = { version = "0.34.1" }
+kiss3d = "0.37.2"
+smol = "2.0.2"
+
+[features]
+default = ["std"]
+std = []
+libm = []
+
+[[bin]]
+name = "simulate"
+path = "src/bin/simulate.rs"
