@@ -1,9 +1,9 @@
 // Copyright © 2025 David Haig
 // SPDX-License-Identifier: MIT
 
+use crate::ui::{Globals, MainWindow};
 use embassy_sync::channel::Channel;
 use slint::ComponentHandle;
-use entangler_common::ui::{Globals, MainWindow};
 
 use crate::{error, warn};
 
@@ -14,17 +14,11 @@ pub enum Action {
     TouchscreenToggleBtn(bool),
 }
 
-#[cfg(feature = "mcu")]
-type ActionChannelType = Channel<embassy_sync::blocking_mutex::raw::ThreadModeRawMutex, Action, 2>;
-
-#[cfg(feature = "simulator")]
 type ActionChannelType =
     Channel<embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex, Action, 2>;
 
 pub static ACTION: ActionChannelType = Channel::new();
 
-// see mcu::hardware or simulator::hardware modules for impl
-// depending on features used
 pub trait Hardware {
     fn green_led_set_high(&mut self) {}
 
@@ -41,7 +35,10 @@ where
     H: Hardware,
 {
     pub fn new(main_window: &'a MainWindow, hardware: H) -> Self {
-        Self { main_window, hardware }
+        Self {
+            main_window,
+            hardware,
+        }
     }
 
     pub async fn run(&mut self) {
@@ -61,7 +58,7 @@ where
         }
     }
 
-    pub async fn process_action(&mut self, action: Action) -> Result<(), ()> {
+    async fn process_action(&mut self, action: Action) -> Result<(), ()> {
         let globals = self.main_window.global::<Globals>();
 
         match action {

@@ -1,9 +1,18 @@
 import { Palette } from "std-widgets.slint";
+import { UAppTheme } from "libraries/sleek-ui/ui/sleek-ui/app-theme.slint";
+
+export struct Poi {
+    a: angle,
+    l: float,
+}
 
 export global Globals {
+    in property <string> version: "0.1.0";
+
     in property <bool> hardware-user-btn-pressed;
     callback toggle-btn(bool);
-    in property <string> target;
+    in property <string> target: "VK2-XXX";
+    in property <[Poi]> pois: [{ a: 45deg, l: 0.5 }, { a: -10deg, l: 0.7 }, { a: 150deg, l: 0.4 }];
 }
 
 struct ButtonColors  {
@@ -21,7 +30,8 @@ struct ModeColors {
     destructive: color,
 }
 
-export global UIPalette  {
+export global UIPalette {
+    // in property <bool> dark-mode: true;
     in property <bool> dark-mode: Palette.color-scheme == ColorScheme.dark;
 
     property <ModeColors> light-mode-colors: {
@@ -78,7 +88,7 @@ export global UIPalette  {
 
     out property <length> base-font-size: 12px;
     out property <length> button-height: 24px;
-    out property <length> button-width: button-height * 2 ;
+    out property <length> button-width: button-height * 2;
 }
 
 export global Theme {
@@ -90,22 +100,24 @@ export component Page inherits Rectangle {
 
     callback back;
 
-    background: UIPalette.background;
+    background: Palette.alternate-background;
     // Stop accidentally getting clicks dur to animation only moving page half way offscreen
     visible: self.opacity > 0;
 
     TouchArea { } // protect underneath controls
 
-    if (root.has-back-button) : Image {
-        x:0;
+    if (root.has-back-button): Image {
+        x: 0;
         source: @image-url("images/back.svg");
         image-fit: contain;
-        colorize: UIPalette.control-secondary;
+        colorize: UAppTheme.color-fill;
         width: 14px;
         height: 24px;
 
         TouchArea {
-            clicked => { root.back() }
+            clicked => {
+                root.back()
+            }
 
             x: -14px;
             height: 200%;

@@ -1,0 +1,63 @@
+import {
+    Globals,
+    Button,
+    Theme,
+    Toggle,
+    UIPalette,
+    Page,
+    Poi,
+} from "../common.slint";
+
+import { ComboBox } from "std-widgets.slint";
+
+import {
+    UButton,
+    UCollapse,
+    UIconButton,
+} from "@sleek-ui/widgets.slint";
+import { UAppTheme } from "@sleek-ui/app-theme.slint";
+
+export component RadarPage inherits Page {
+    out property <length> raw-canvas-width <=> raw-canvas.width;
+    out property <length> raw-canvas-height <=> raw-canvas.height;
+    out property <length> raw-canvas-x <=> raw-canvas.x;
+    out property <length> raw-canvas-y <=> raw-canvas.y;
+
+    callback settings-triggered();
+
+    HorizontalLayout {
+        alignment: stretch;
+
+        VerticalLayout {
+            alignment: stretch;
+
+            HorizontalLayout {
+                alignment: stretch;
+                spacing: UAppTheme.spacing-base;
+                padding: UAppTheme.spacing-base;
+
+                // TODO change to https://github.com/uAtomicBoolean/sleek-ui/issues/9
+                ComboBox {
+                    min-width: 70px;
+                    model: ["VK2-XXX", "VK2-ASD", "VK2-XYZ"];
+                    current-value: Globals.target;
+                }
+
+                UIconButton {
+                    icon: @image-url("../images/tune_20p.svg");
+                    width: self.height;
+                    border-radius: UAppTheme.radius-small;
+                    background: UAppTheme.bg-container;
+
+                    clicked => {
+                        root.settings-triggered();
+                    }
+                }
+            }
+
+            raw-canvas := Rectangle {
+                vertical-stretch: 1;
+            }
+        }
+    }
+}

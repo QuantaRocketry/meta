@@ -1,8 +1,8 @@
 // Copyright © 2025 David Haig
 // SPDX-License-Identifier: MIT
 
-use crate::controller::Hardware;
 use crate::info;
+use entangler_common::controller::Hardware;
 
 pub struct HardwareSim {}
 

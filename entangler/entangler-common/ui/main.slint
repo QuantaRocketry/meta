@@ -1,82 +1,49 @@
-import { Globals, Button, Theme, Toggle, UIPalette } from "common.slint";
-import {RadarPage} from "radar_page.slint";
-import {SettingsPage} from "settings_page.slint";
+import { Globals } from "common.slint";
+import { RadarPage, SettingsPage } from "page.slint";
 
 export { Globals }
 
-component TabBarItem inherits Rectangle {
-    in-out property <bool> active;
-    in-out property <image> icon <=> i.source;
-    in-out property <brush> icon-colorize <=> i.colorize;
-
-    callback activate;
-    // width: UIPalette.side-bar-width;
-    height: 32px;
-    border-width: 1px;
-    border-color: UIPalette.text-primary;
-    // background: active ? UIPalette.primary-push-button-colors.pressed : UIPalette.primary-push-button-colors.base;
-
-    Rectangle {
-        // x: UIPalette.side-bar-margin;
-        GridLayout {
-            padding: 0px;
-            @children
-        }
-
-        i := Image {
-            image-fit: fill;
-            colorize: root.active ? UIPalette.active-page-icon-color : UIPalette.inactive-page-icon-color;
-            animate colorize { duration: 125ms; }
-        }
-    }
-
-    TouchArea {
-        clicked => {
-            root.activate();
-        }
-    }
-}
-
 export component MainWindow inherits Window {
-    height: 300px;
+    height: 320px;
     width: 172px;
-    in-out property <int> active-page: 1;
+    in-out property <int> active-page: 0;
+    out property <length> raw-canvas-width <=> radar-page.raw-canvas-width;
+    out property <length> raw-canvas-height <=> radar-page.raw-canvas-height;
+    out property <length> raw-canvas-x <=> radar-page.raw-canvas-x;
+    out property <length> raw-canvas-y <=> radar-page.raw-canvas-y;
 
     window := VerticalLayout {
+        height: 100%;
         alignment: stretch;
-
-        tab-bar := HorizontalLayout {
-            width: 100%;
-            vertical-stretch: 0;
-            
-            for page-icon[idx] in [
-                @image-url("images/location_20p.svg"),
-                @image-url("images/tune_20p.svg"),
-                // @image-url("images/ink.svg"),
-            ]: TabBarItem {
-                activate => {
-                    root.active-page = idx;
-                }
-                icon: page-icon;
-                active: root.active-page == idx;
-            }
-        }
 
         main-view := Rectangle {
             vertical-stretch: 1;
-            background: red;
             property <duration> page-animation-duration: 250ms;
 
-            RadarPage {
+            radar-page := RadarPage {
                 height: 100%;
                 property <int> pageNumber: 0;
                 opacity: root.active-page == pageNumber ? 1 : 0;
+
+                settings-triggered => {
+                    root.active-page = 1;
+                }
+
+                animate opacity { duration: main-view.page-animation-duration; }
             }
-            
+
             SettingsPage {
                 height: 100%;
                 property <int> pageNumber: 1;
                 opacity: root.active-page == pageNumber ? 1 : 0;
+                x: root.active-page == pageNumber ? 0 : root.width;
+
+                back => {
+                    root.active-page = 0;
+                }
+
+                animate opacity { duration: main-view.page-animation-duration; }
+                animate x { duration: main-view.page-animation-duration; }
             }
         }
     }

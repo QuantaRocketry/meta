@@ -1,4 +1,15 @@
+#![no_std]
+
+extern crate alloc;
+
+#[cfg(not(feature = "defmt"))]
+pub use log::{debug, error, info, trace, warn};
+
+#[cfg(feature = "defmt")]
+pub use defmt::{debug, error, info, trace, warn};
+
 // pub mod app;
+pub mod controller;
 pub mod ui;
 // pub mod event;
 

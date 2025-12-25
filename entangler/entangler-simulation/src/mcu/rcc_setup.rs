@@ -1,6 +1,3 @@
-// Copyright © 2025 David Haig
-// SPDX-License-Identifier: MIT
-
 use embassy_stm32::time::Hertz;
 use embassy_stm32::{rcc, Config, Peripherals};
 

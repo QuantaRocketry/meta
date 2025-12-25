@@ -1,6 +1,3 @@
-// Copyright © 2025 David Haig
-// SPDX-License-Identifier: MIT
-
 use alloc::rc::Rc;
 use embassy_time::Instant;
 use slint::{
@@ -12,7 +9,7 @@ use slint::{
 };
 
 pub const DISPLAY_WIDTH: usize = 172;
-pub const DISPLAY_HEIGHT: usize = 300;
+pub const DISPLAY_HEIGHT: usize = 320;
 pub type TargetPixelType = software_renderer::Rgb565Pixel;
 
 pub struct StmBackend {

@@ -1,0 +1,102 @@
+import {
+    Globals,
+    Page,
+} from "../common.slint";
+
+import {
+    ScrollView,
+    AboutSlint,
+} from "std-widgets.slint";
+
+import {
+    UDivider,
+    USwitch,
+    UText,
+    UIconButton,
+} from "@sleek-ui/widgets.slint";
+import { UAppTheme } from "@sleek-ui/app-theme.slint";
+
+export component SettingsPage inherits Page {
+    VerticalLayout {
+        spacing: 1px;
+        HorizontalLayout {
+            spacing: UAppTheme.spacing-base;
+            padding: UAppTheme.padding-base;
+
+            UIconButton {
+                width: self.height;
+                background: UAppTheme.bg-container;
+                border-radius: UAppTheme.radius-base;
+                icon: @image-url("../images/back.svg");
+                clicked => {
+                    root.back();
+                }
+            }
+
+            UText {
+                text: "Settings";
+                font-size: UAppTheme.font-size-bigger;
+                horizontal-alignment: center;
+                font-weight: 800;
+            }
+        }
+
+        UDivider {
+            vertical-stretch: 0;
+        }
+
+        ScrollView {
+            width: 100%;
+            vertical-scrollbar-policy: always-off;
+            VerticalLayout {
+                width: 100%;
+                alignment: stretch;
+                padding: 5px;
+                spacing: 5px;
+
+                HorizontalLayout {
+                    alignment: stretch;
+                    USwitch {
+                        horizontal-stretch: 0;
+                        clicked => {
+                            debug("Helloworld switch pressed");
+                            self.checked = !self.checked;
+                        }
+                    }
+
+                    UText {
+                        text: "Hello world";
+                        horizontal-stretch: 1;
+                        horizontal-alignment: center;
+                    }
+                }
+
+                UDivider {
+                    vertical-stretch: 0;
+                }
+
+                HorizontalLayout {
+                    alignment: center;
+                    Text {
+                        text: "Version ";
+                    }
+
+                    Text {
+                        text: Globals.version;
+                    }
+                }
+
+                UDivider {
+                    vertical-stretch: 0;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                    AboutSlint {
+                        height: self.min-height;
+                    }
+                }
+            }
+        }
+    }
+}
