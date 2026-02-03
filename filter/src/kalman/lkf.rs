@@ -1,6 +1,6 @@
 // An implementation of a linear kalman filter
 
-use nalgebra::{self, SMatrix, SVector};
+use nalgebra::{self, SMatrix, SVector, Vector3};
 
 pub struct LKF<const N: usize> {
     x: SVector<f32, N>,
@@ -8,7 +8,12 @@ pub struct LKF<const N: usize> {
 }
 
 impl<const N: usize> LKF<N> {
-    pub fn new() {}
+    pub fn new() -> LKF<N> {
+        LKF {
+            x: SVector::<f32, N>::zeros(),
+            H: SMatrix::<f32, N, N>::zeros(),
+        }
+    }
 
     pub fn predict(dt: f32) {}
 
