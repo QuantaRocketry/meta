@@ -1,0 +1,17 @@
+[package]
+name = "wio-l1"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# cortex-m-rtic = "1.0.0"
+# panic-semihosting = "0.6.0"
+# cortex-m-semihosting = "0.5.0"
+nrf52840-hal = "0.19.0"
+
+
+cortex-m-rt = "0.7.3"
+panic-semihosting = "0.6.0"
+usb-device = "0.3.2"
+usbd-serial = "0.2.1"
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }

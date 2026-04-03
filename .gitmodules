@@ -4,3 +4,6 @@
 [submodule "entangler/entangler-common/ui/libraries/sleek-ui"]
 	path = entangler/entangler-common/ui/libraries/sleek-ui
 	url = https://github.com/uAtomicBoolean/sleek-ui.git
+[submodule "wio-l1/lib/uf2"]
+	path = wio-l1/lib/uf2
+	url = https://github.com/microsoft/uf2.git

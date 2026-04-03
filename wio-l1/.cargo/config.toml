@@ -1,0 +1,13 @@
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.thumbv7em-none-eabihf]
+runner = "./uf2.sh"
+rustflags = [
+    "-C",
+    "link-arg=-Tlink.x",
+    # "-C",
+    # "linker=flip-link",
+    "-C",
+    "codegen-units=1",
+]
