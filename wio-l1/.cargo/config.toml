@@ -2,7 +2,9 @@
 target = "thumbv7em-none-eabihf"
 
 [target.thumbv7em-none-eabihf]
-runner = "./uf2.sh"
+# `cargo run` flashes and attaches a debug session via a probe.
+# Requires: cargo install probe-rs-tools --locked
+runner = "probe-rs run --chip nRF52840_xxAA"
 rustflags = [
     "-C",
     "link-arg=-Tlink.x",

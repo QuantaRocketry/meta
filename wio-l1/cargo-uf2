@@ -1,0 +1,53 @@
+#!/bin/bash
+# cargo-uf2: Build the firmware and convert the ELF to a UF2 file.
+# Usage: cargo uf2 [cargo build flags]
+#   e.g. cargo uf2
+#        cargo uf2 --release
+#
+# The produced .uf2 is placed alongside the ELF in the cargo target directory.
+
+set -e
+
+MANIFEST_DIR="$(cargo locate-project --message-format plain | xargs dirname)"
+
+# Cargo passes the subcommand name ("uf2") as the first argument — drop it.
+shift
+
+# Run the actual build, forwarding any extra flags.
+cargo build "$@"
+
+# Determine the build profile.
+PROFILE="debug"
+for arg in "$@"; do
+    [[ "$arg" == "--release" ]] && PROFILE="release" && break
+done
+
+# Read target triple and crate name from project config/manifest.
+TARGET_TRIPLE=$(grep -m1 'target\s*=' "$MANIFEST_DIR/.cargo/config.toml" \
+    | sed 's/.*=\s*"\(.*\)"/\1/')
+
+CRATE_NAME=$(grep -m1 '^name\s*=' "$MANIFEST_DIR/Cargo.toml" \
+    | sed 's/.*=\s*"\(.*\)"/\1/')
+
+ELF_FILE="$MANIFEST_DIR/target/$TARGET_TRIPLE/$PROFILE/$CRATE_NAME"
+BIN_FILE="${ELF_FILE}.bin"
+UF2_FILE="${ELF_FILE}.uf2"
+CONV_SCRIPT="$MANIFEST_DIR/lib/uf2/utils/uf2conv.py"
+
+if [ ! -f "$ELF_FILE" ]; then
+    echo "Error: ELF not found at $ELF_FILE" >&2
+    exit 1
+fi
+
+# Pick an objcopy implementation.
+if   command -v llvm-objcopy      >/dev/null 2>&1; then OBJCOPY="llvm-objcopy"
+elif command -v rust-objcopy      >/dev/null 2>&1; then OBJCOPY="rust-objcopy"
+elif command -v arm-none-eabi-objcopy >/dev/null 2>&1; then OBJCOPY="arm-none-eabi-objcopy"
+else echo "Error: no objcopy found (install llvm-tools, cargo-binutils, or arm-none-eabi-binutils)" >&2; exit 1
+fi
+
+echo "→ ELF  $ELF_FILE"
+$OBJCOPY -O binary "$ELF_FILE" "$BIN_FILE"
+
+python3 "$CONV_SCRIPT" -c -b 0x27000 -f 0xada52840 -o "$UF2_FILE" "$BIN_FILE"
+echo "→ UF2  $UF2_FILE"
