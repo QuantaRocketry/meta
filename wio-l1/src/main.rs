@@ -1,14 +1,23 @@
 #![no_std]
 #![no_main]
 
-use panic_semihosting as _;
+use defmt_rtt as _;
+use panic_probe as _;
 
 mod task;
 
 #[rtic::app(device = nrf52840_hal::pac, dispatchers = [SWI0_EGU0, SWI1_EGU1])]
 mod app {
+    use defmt::info;
+    use embedded_graphics::{
+        mono_font::{MonoTextStyleBuilder, ascii::FONT_6X10},
+        pixelcolor::BinaryColor,
+        prelude::*,
+        text::{Baseline, Text},
+    };
     use nrf52840_hal::{
-        Clocks, clocks, gpio,
+        Clocks, Twim, clocks, gpio,
+        pac::TWIM0,
         usbd::{UsbPeripheral, Usbd},
     };
     use rtic_monotonics::nrf::timer::prelude::*;
@@ -21,23 +30,37 @@ mod app {
 
     use crate::task;
 
-    nrf_timer0_monotonic!(Mono, 1_000_000);
+    nrf_timer0_monotonic!(Systick, 1_000_000);
+    nrf_timer1_monotonic!(Mono, 1_000_000);
+
+    defmt::timestamp!("{=u64:us}", { Systick::now().ticks() });
 
     #[shared]
-    struct Shared {}
+    struct Shared {
+        inputs: heapless::Vec<embedded_touch::Touch, 10>,
+    }
 
     #[local]
     struct Local {
         usb_dev: UsbDevice<'static, Usbd<UsbPeripheral<'static>>>,
         usb_serial: SerialPort<'static, Usbd<UsbPeripheral<'static>>>,
-        led: gpio::Pin<gpio::Output<gpio::PushPull>>,
+        led_pin: gpio::Pin<gpio::Output<gpio::PushPull>>,
+        oled_display: sh1106::mode::GraphicsMode<sh1106::interface::I2cInterface<Twim<TWIM0>>>,
     }
 
     #[init]
     fn init(cx: init::Context) -> (Shared, Local) {
+        info!("Initializing...");
         let p = cx.device;
 
         let clocks = Clocks::new(p.CLOCK).enable_ext_hfosc();
+
+        // Start systick for defmt
+        Systick::start(p.TIMER0);
+
+        // Start timer for delays
+        let port1 = gpio::p1::Parts::new(p.P1);
+        Mono::start(p.TIMER1);
 
         let clocks_ref = {
             static CLOCKS_CELL: StaticCell<
@@ -70,21 +93,50 @@ mod app {
             .unwrap()
             .build();
 
-        let port1 = gpio::p1::Parts::new(p.P1);
-        let led = port1
-            .p1_01
-            .into_push_pull_output(gpio::Level::Low)
-            .degrade();
+        let port0 = gpio::p0::Parts::new(p.P0);
+        let mut oled_i2c = {
+            let scl = port0.p0_05.into_floating_input().degrade();
+            let sda = port0.p0_06.into_floating_input().degrade();
+            Twim::new(
+                p.TWIM0,
+                nrf52840_hal::twim::Pins { scl, sda },
+                nrf52840_hal::twim::Frequency::K100,
+            )
+        };
 
-        Mono::start(p.TIMER0);
+        let oled_display = {
+            // Probe for the OLED address (standard addresses are 0x3C and 0x3D per schematic)
+            let addr = if oled_i2c.write(0x3c, &[]).is_ok() {
+                0x3c
+            } else {
+                0x3d
+            };
+
+            let mut display: sh1106::mode::GraphicsMode<_> = sh1106::Builder::new()
+                .with_i2c_addr(addr)
+                .connect_i2c(oled_i2c)
+                .into();
+
+            display.init().unwrap();
+            display.flush().unwrap();
+            display
+        };
+
         blink::spawn().unwrap();
+        oled_task::spawn().unwrap();
+
+        let inputs = heapless::Vec::new();
 
         (
-            Shared {},
+            Shared { inputs },
             Local {
                 usb_dev,
                 usb_serial,
-                led,
+                led_pin: port1
+                    .p1_01
+                    .into_push_pull_output(gpio::Level::Low)
+                    .degrade(),
+                oled_display,
             },
         )
     }
@@ -94,9 +146,9 @@ mod app {
         let usb_dev = cx.local.usb_dev;
         let usb_serial = cx.local.usb_serial;
 
-        while usb_dev.poll(&mut [usb_serial]) {
-            let mut buf = [0u8; 64];
+        let mut buf = [0u8; 512];
 
+        while usb_dev.poll(&mut [usb_serial]) {
             // Drain the FIFO
             while let Ok(count) = usb_serial.read(&mut buf) {
                 if count == 0 {
@@ -116,8 +168,28 @@ mod app {
         }
     }
 
-    #[task(priority = 1, local = [led])]
+    #[task(priority = 2, shared = [inputs], local = [oled_display, ])]
+    async fn oled_task(cx: oled_task::Context) {
+        let display = cx.local.oled_display;
+
+        let text_style = MonoTextStyleBuilder::new()
+            .font(&FONT_6X10)
+            .text_color(BinaryColor::On)
+            .build();
+
+        Text::with_baseline("Hello World!", Point::zero(), text_style, Baseline::Top)
+            .draw(display)
+            .unwrap();
+
+        display.flush().unwrap();
+
+        loop {
+            Mono::delay(1000.millis()).await;
+        }
+    }
+
+    #[task(priority = 1, local = [led_pin])]
     async fn blink(cx: blink::Context) {
-        task::blink_task(cx.local.led, Mono).await;
+        task::blink_task(cx.local.led_pin, Mono).await;
     }
 }

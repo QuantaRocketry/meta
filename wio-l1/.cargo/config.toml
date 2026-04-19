@@ -3,8 +3,8 @@ target = "thumbv7em-none-eabihf"
 
 [target.thumbv7em-none-eabihf]
 # `cargo run` flashes and attaches a debug session via a probe.
-# Requires: cargo install probe-rs-tools --locked
-runner = "probe-rs run --chip nRF52840_xxAA"
+# Requires: cargo install cargo-embed --locked
+runner = "cargo embed"
 rustflags = [
     "-C",
     "link-arg=-Tlink.x",
@@ -13,3 +13,6 @@ rustflags = [
     "-C",
     "codegen-units=1",
 ]
+
+[env]
+DEFMT_LOG = "info"

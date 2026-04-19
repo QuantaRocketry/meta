@@ -8,4 +8,4 @@ This project uses the UF2 bootloader that comes pre-installed on the device. Run
 
 ## Debugging
 
-This project uses the probe-rs debugger to debug the firmware. Run `cargo run --release` to build and flash the firmware to the device in release mode.
+This project uses `cargo-embed` and `defmt` for debugging. Run `cargo run --release` to build, flash, and view the RTT logs from the device in release mode.
