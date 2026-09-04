@@ -1,0 +1,57 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/common",
+    "crates/nmea-stream",
+    "crates/lis3mdl",
+    "crates/lsm6ds3",
+    "crates/qcp",
+    "crates/wio-l1",
+    "crates/solar-p1",
+    "crates/warp",
+]
+exclude = ["crates/mock-embedded-io"]
+
+[workspace.dependencies]
+assign-resources = "0.5.0"
+at-commands = "0.5.8"
+buoyant = "0.7.0"
+cortex-m = { version = "0.7.6" }
+cortex-m-rt = "0.7.0"
+defmt = { version = "1.1.0" }
+defmt-rtt = { version = "1.2.0" }
+display-interface-i2c = "0.5.0"
+embassy-embedded-hal = "0.6.0"
+embassy-executor = { version = "0.10.0" }
+embassy-futures = { version = "0.1.2" }
+embassy-net = { version = "0.9" }
+embassy-nrf = { version = "0.10.0" }
+embassy-rp = { version = "0.10.0" }
+embassy-sync = { version = "0.8.0" }
+embassy-time = { version = "0.5.1" }
+embassy-usb = { version = "0.6.0" }
+embassy-usb-logger = "0.6.0"
+embedded-alloc = "0.7.0"
+embedded-graphics = "0.8.2"
+embedded-graphics-core = "0.4.1"
+embedded-hal = { version = "1.0" }
+embedded-hal-async = { version = "1.0" }
+embedded-hal-bus = { version = "0.1" }
+embedded-io-async = { version = "0.7.0" }
+embedded-storage = "0.3.1"
+heapless = "0.9.3"
+libm = "0.2.16"
+log = "0.4.29"
+lora-phy = "3.0.1"
+num-integer = { version = "0.1.45", default-features = false }
+oled_async = { git = "https://github.com/techmccat/sh1106.git", branch = "master" }
+panic-probe = "1.0.0"
+portable-atomic = "1"
+rand = { version = "0.10.1", default-features = false }
+regiface = "0.2.5"
+serde = { version = "1.0.136", default-features = false }
+static_cell = { version = "2.1" }
+sx1262 = { git = "https://github.com/BroderickCarlin/SX1262", branch = "main", default-features = false }
+u8g2-fonts = "0.8.0"
+uf-ahrs = "0.2.1"
+usbd-hid = "0.10.0"

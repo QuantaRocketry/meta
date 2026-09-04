@@ -1,0 +1,112 @@
+[package]
+name = "wio-l1"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+assign-resources = { workspace = true }
+at-commands = { workspace = true }
+buoyant = { workspace = true }
+cortex-m = { version = "0.7.6", features = [
+    "inline-asm",
+    "critical-section-single-core",
+] }
+cortex-m-rt = "0.7.0"
+defmt = { workspace = true }
+defmt-rtt = { version = "1.2.0" }
+display-interface-i2c = "0.5.0"
+embassy-embedded-hal = "0.6.0"
+embassy-executor = { workspace = true, features = [
+    "platform-cortex-m",
+    "executor-thread",
+    "executor-interrupt",
+] }
+embassy-futures = { workspace = true }
+embassy-nrf = { version = "0.10.0", features = [
+    "nrf52840",
+    "time-driver-rtc1",
+    "gpiote",
+    "unstable-pac",
+    "time",
+    "net-driver",
+    "nfc-pins-as-gpio",
+] }
+embassy-sync = { workspace = true }
+embassy-time = { workspace = true }
+embassy-usb = { workspace = true }
+embassy-usb-logger = { workspace = true }
+embedded-alloc = { workspace = true }
+embedded-graphics = { workspace = true }
+embedded-graphics-core = { workspace = true }
+embedded-hal = { workspace = true }
+embedded-hal-async = { workspace = true }
+embedded-hal-bus = { workspace = true, features = ["async"] }
+embedded-io-async = { workspace = true }
+embedded-resources = { version = "0.2.1", features = ["nrf"] }
+embedded-storage = { workspace = true }
+heapless = { workspace = true }
+libm = { workspace = true }
+log = { workspace = true }
+lora-phy = "3.0.1"
+num-integer = { workspace = true }
+oled_async = { git = "https://github.com/techmccat/sh1106.git", branch = "master", features = [
+    "i2c",
+] }
+panic-probe = { workspace = true }
+portable-atomic = { workspace = true }
+rand = { workspace = true, default-features = false }
+regiface = { workspace = true }
+serde = { workspace = true, default-features = false }
+static_cell = { workspace = true }
+sx1262 = { git = "https://github.com/BroderickCarlin/SX1262", branch = "main", default-features = false }
+u8g2-fonts = { workspace = true, features = ["embedded_graphics_textstyle"] }
+uf-ahrs = { workspace = true }
+usbd-hid = { workspace = true }
+
+
+[dependencies.nmea-stream]
+path = "../nmea-stream"
+features = [
+    "GGA",
+    "RMC",
+    # "GNSS", 
+    # "TXT"
+]
+
+[dependencies.common]
+path = "../common"
+
+[dependencies.interface]
+path = "../interface"
+
+[dependencies.lis3mdl]
+path = "../lis3mdl"
+
+[dependencies.lsm6ds3]
+path = "../lsm6ds3"
+
+[features]
+default = ["wio-l1"]
+defmt = [
+    # "dep:defmt",
+    # "dep:defmt-rtt",
+    "panic-probe/print-defmt",
+    "embassy-sync/defmt",
+    "embassy-executor/defmt",
+    "embassy-time/defmt",
+    "embassy-time/defmt-timestamp-uptime",
+    "embassy-nrf/defmt",
+    "embassy-usb/defmt",
+    # "nmea-stream/defmt",
+]
+has-compass = []
+has-oled = []
+has-buzzer = []
+has-joystick = []
+wio-l1 = ["has-compass", "has-joystick", "has-oled"]
+solar-p1 = []
+
+[profile.release]
+# opt-level = "s"
+# lto = "fat"
+debug = true

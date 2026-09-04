@@ -1,0 +1,19 @@
+[package]
+name = "interface"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+buoyant = { workspace = true }
+embedded-graphics = { workspace = true }
+embedded-graphics-core = { workspace = true }
+libm = { workspace = true }
+
+# embedded-iconoir = { version = "0.2.3", default-features = false, features = [
+#     "12px",
+# ] }
+u8g2-fonts = { version = "0.7.1", features = ["embedded_graphics_textstyle"] }
+heapless = "0.9.3"
+
+[dev-dependencies]
+embedded-graphics-simulator = "0.8"

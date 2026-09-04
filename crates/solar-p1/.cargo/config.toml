@@ -1,0 +1,8 @@
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = ["sh", "-c", "elf2flash convert --family 0xada52840 $1 $1.uf2", "--"]
+
+[env]
+DEFMT_LOG = "debug"

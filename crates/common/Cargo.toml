@@ -1,0 +1,22 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+defmt = { workspace = true, optional = true }
+embassy-executor = { workspace = true }
+embassy-futures = { workspace = true }
+# embassy-nrf = { workspace = true }
+embassy-sync = { workspace = true }
+embassy-time = { workspace = true }
+embedded-hal-async = { workspace = true }
+embedded-hal-bus = { workspace = true }
+heapless = { workspace = true }
+log = { workspace = true }
+regiface = { workspace = true }
+sx1262 = { workspace = true }
+
+[features]
+default = []
+defmt = ["dep:defmt"]

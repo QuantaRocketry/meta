@@ -1,0 +1,1755 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/main/Documents/git/quanta/meta/crates/wio-l1/Cargo.toml
+workspace: /home/main/Documents/git/quanta/meta/Cargo.toml
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/main/Documents/git/quanta/meta/crates/solar-p1/Cargo.toml
+workspace: /home/main/Documents/git/quanta/meta/Cargo.toml
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/main/Documents/git/quanta/meta/crates/warp/Cargo.toml
+workspace: /home/main/Documents/git/quanta/meta/Cargo.toml
+warning: unused import: `modal::modal`
+  --> crates/interface/src/components/mod.rs:10:9
+   |
+10 | pub use modal::modal;
+   |         ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `InterfaceEvent` and `NavigateEvent`
+ --> crates/interface/src/state.rs:6:13
+  |
+6 |     event::{InterfaceEvent, NavigateEvent},
+  |             ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: function `focusable` is never used
+  --> crates/interface/src/components/mod.rs:14:8
+   |
+14 | pub fn focusable(
+   |        ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `modal` is never used
+ --> crates/interface/src/components/modal.rs:6:8
+  |
+6 | pub fn modal(_inner: impl View<BinaryColor, State>) -> impl View<BinaryColor, State> {
+  |        ^^^^^
+
+warning: `interface` (lib) generated 4 warnings (run `cargo fix --lib -p interface` to apply 2 suggestions)
+warning: unused import: `embassy_executor::Spawner`
+ --> crates/common/src/module/radio.rs:1:5
+  |
+1 | use embassy_executor::Spawner;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `Channel`, `NoopRawMutex`, `lazy_lock::LazyLock`, and `self`
+  --> crates/common/src/module/radio.rs:8:27
+   |
+ 8 |     blocking_mutex::raw::{NoopRawMutex, RawMutex},
+   |                           ^^^^^^^^^^^^
+ 9 |     lazy_lock::LazyLock,
+   |     ^^^^^^^^^^^^^^^^^^^
+10 |     zerocopy_channel::{self, Channel, Receiver},
+   |                        ^^^^  ^^^^^^^
+
+warning: unused import: `Delay`
+  --> crates/common/src/module/radio.rs:12:20
+   |
+12 | use embassy_time::{Delay, Timer};
+   |                    ^^^^^
+
+warning: unused import: `delay::DelayNs`
+  --> crates/common/src/module/radio.rs:13:26
+   |
+13 | use embedded_hal_async::{delay::DelayNs, spi::SpiDevice};
+   |                          ^^^^^^^^^^^^^^
+
+warning: unused import: `embedded_hal_bus::spi::ExclusiveDevice`
+  --> crates/common/src/module/radio.rs:14:5
+   |
+14 | use embedded_hal_bus::spi::ExclusiveDevice;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `debug` and `warn`
+  --> crates/common/src/module/radio.rs:19:13
+   |
+19 | use crate::{debug, error, info, warn};
+   |             ^^^^^               ^^^^
+
+warning: variable does not need to be mutable
+   --> crates/common/src/module/radio.rs:158:10
+    |
+158 |     let (mut spi, mut dio1, mut receiver) = match r.try_get_resources() {
+    |          ----^^^
+    |          |
+    |          help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `common` (lib) generated 7 warnings (run `cargo fix --lib -p common` to apply 7 suggestions)
+   Compiling wio-l1 v0.1.0 (/home/main/Documents/git/quanta/meta/crates/wio-l1)
+error[E0463]: can't find crate for `std`
+  |
+  = note: the `thumbv7em-none-eabihf` target may not support the standard library
+  = note: `std` is required by `wio_l1` because it does not declare `#![no_std]`
+  = help: consider building the standard library from source with `cargo build -Zbuild-std`
+
+error: cannot resolve a prelude import
+
+error[E0432]: unresolved imports `crate::debug`, `crate::error`, `crate::info`
+ --> crates/wio-l1/src/module/battery.rs:9:13
+  |
+9 | use crate::{debug, error, info};
+  |             ^^^^^  ^^^^^  ^^^^ no `info` in the root
+  |             |      |
+  |             |      no `error` in the root
+  |             no `debug` in the root
+  |
+  = help: consider importing this module instead:
+          core::error
+
+error[E0432]: unresolved imports `crate::debug`, `crate::info`
+ --> crates/wio-l1/src/module/blink.rs:1:13
+  |
+1 | use crate::{debug, device::hardware::LedResources, info};
+  |             ^^^^^ no `debug` in the root           ^^^^ no `info` in the root
+
+error[E0432]: unresolved imports `crate::debug`, `crate::error`, `crate::info`
+ --> crates/wio-l1/src/module/gnss.rs:7:13
+  |
+7 | use crate::{debug, device::hardware::GnssResources, device::hardware::Irqs, error, info};
+  |             ^^^^^                                                           ^^^^^  ^^^^ no `info` in the root
+  |             |                                                               |
+  |             no `debug` in the root                                          no `error` in the root
+  |
+  = help: consider importing this module instead:
+          core::error
+
+error[E0432]: unresolved imports `crate::debug`, `crate::error`, `crate::info`, `crate::warn`
+  --> crates/wio-l1/src/module/radio.rs:19:13
+   |
+19 | use crate::{debug, error, info, warn};
+   |             ^^^^^  ^^^^^  ^^^^  ^^^^ no `warn` in the root
+   |             |      |      |
+   |             |      |      no `info` in the root
+   |             |      no `error` in the root
+   |             no `debug` in the root
+   |
+   = help: consider importing this module instead:
+           core::error
+
+error[E0432]: unresolved import `crate::info`
+ --> crates/wio-l1/src/module/usb.rs:1:69
+  |
+1 | use crate::{device::hardware::Irqs, device::hardware::UsbResources, info, terminal::AtCommand};
+  |                                                                     ^^^^ no `info` in the root
+
+error[E0432]: unresolved import `crate::interface`
+  --> crates/wio-l1/src/module/oled.rs:17:5
+   |
+17 | use crate::interface;
+   |     ^^^^^^^---------
+   |            |
+   |            no `interface` in the root
+
+error[E0432]: unresolved imports `crate::error`, `crate::info`
+  --> crates/wio-l1/src/module/oled.rs:21:13
+   |
+21 | use crate::{error, info};
+   |             ^^^^^  ^^^^ no `info` in the root
+   |             |
+   |             no `error` in the root
+   |
+   = help: consider importing this module instead:
+           core::error
+
+error[E0432]: unresolved imports `crate::debug`, `crate::info`, `crate::warn`
+  --> crates/wio-l1/src/module/joystick.rs:10:13
+   |
+10 | use crate::{debug, device::hardware::JoystickResources, info, warn};
+   |             ^^^^^                                       ^^^^  ^^^^ no `warn` in the root
+   |             |                                           |
+   |             no `debug` in the root                      no `info` in the root
+
+error[E0432]: unresolved imports `crate::debug`, `crate::error`, `crate::info`, `crate::warn`
+  --> crates/wio-l1/src/module/compass.rs:18:13
+   |
+18 | use crate::{debug, error, info, warn};
+   |             ^^^^^  ^^^^^  ^^^^  ^^^^ no `warn` in the root
+   |             |      |      |
+   |             |      |      no `info` in the root
+   |             |      no `error` in the root
+   |             no `debug` in the root
+   |
+   = help: consider importing this module instead:
+           core::error
+
+error[E0433]: cannot find `modules` in `common`
+  --> crates/wio-l1/src/system/mod.rs:18:13
+   |
+18 | use common::modules::radio::{RadioConfigManager, RadioResources};
+   |             ^^^^^^^ could not find `modules` in `common`
+
+error[E0432]: unresolved imports `crate::error`, `crate::info`, `crate::warn`
+ --> crates/wio-l1/src/system/mod.rs:3:13
+  |
+3 | use crate::{error, info, warn};
+  |             ^^^^^  ^^^^  ^^^^ no `warn` in the root
+  |             |      |
+  |             |      no `info` in the root
+  |             no `error` in the root
+  |
+  = help: consider importing this module instead:
+          core::error
+
+error[E0433]: cannot find module or crate `alloc` in this scope
+ --> crates/wio-l1/src/module/battery.rs:1:5
+  |
+1 | use alloc::string::String;
+  |     ^^^^^ use of unresolved module or unlinked crate `alloc`
+  |
+  = help: add `extern crate alloc` to use the `alloc` crate
+
+error[E0432]: unresolved import `crate::info`
+ --> crates/wio-l1/src/terminal.rs:1:5
+  |
+1 | use crate::info;
+  |     ^^^^^^^----
+  |            |
+  |            no `info` in the root
+
+error[E0432]: unresolved import `alloc`
+ --> crates/wio-l1/src/module/gnss.rs:1:5
+  |
+1 | use alloc::format;
+  |     ^^^^^
+  |
+help: a similar path exists
+  |
+1 | use core::alloc::format;
+  |     ++++++
+
+error[E0432]: unresolved import `alloc`
+ --> crates/wio-l1/src/module/compass.rs:3:5
+  |
+3 | use alloc::format;
+  |     ^^^^^
+  |
+help: a similar path exists
+  |
+3 | use core::alloc::format;
+  |     ++++++
+
+error: cannot find macro `write` in this scope
+  --> crates/wio-l1/src/log_style.rs:10:13
+   |
+10 |     let _ = write!(
+   |             ^^^^^
+   |
+help: consider importing one of these macros
+   |
+ 1 + use core::write;
+   |
+ 1 + use defmt::write;
+   |
+
+error: cannot find macro `write` in this scope
+  --> crates/wio-l1/src/module/usb.rs:49:13
+   |
+49 |     let _ = write!(s, "+FREQ: {}\r\n", freq_hz);
+   |             ^^^^^
+   |
+help: consider importing one of these macros
+   |
+ 1 + use core::write;
+   |
+ 1 + use defmt::write;
+   |
+
+error: cannot find macro `panic` in this scope
+  --> crates/wio-l1/src/module/usb.rs:21:46
+   |
+21 |             EndpointError::BufferOverflow => panic!("Buffer overflow"),
+   |                                              ^^^^^
+   |
+help: consider importing one of these macros
+   |
+ 1 + use core::panic;
+   |
+ 1 + use defmt::panic;
+   |
+
+error: cannot find attribute `derive` in this scope
+ --> crates/wio-l1/src/system/config.rs:1:3
+  |
+1 | #[derive(Default)]
+  |   ^^^^^^
+  |
+help: consider importing this attribute macro
+  |
+1 + use core::derive;
+  |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/compass.rs:23:3
+   |
+23 | #[derive(Default, Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/oled.rs:23:3
+   |
+23 | #[derive(Debug, Clone, PartialEq)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/radio.rs:99:3
+   |
+99 | #[derive(Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/radio.rs:93:3
+   |
+93 | #[derive(Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/radio.rs:77:3
+   |
+77 | #[derive(Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/radio.rs:43:3
+   |
+43 | #[derive(Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/radio.rs:26:3
+   |
+26 | #[derive(Debug, Copy, Clone)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+ --> crates/wio-l1/src/module/gnss.rs:9:3
+  |
+9 | #[derive(Default, Debug, Copy, Clone)]
+  |   ^^^^^^
+  |
+help: consider importing this attribute macro
+  |
+1 + use core::derive;
+  |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/module/battery.rs:16:3
+   |
+16 | #[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
+   |   ^^^^^^
+   |
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error: cannot find attribute `derive` in this scope
+  --> crates/wio-l1/src/device/wio_l1.rs:4:1
+   |
+ 4 | / bind_interrupts!(pub struct Irqs {
+ 5 | |     USBD => usb::InterruptHandler<peripherals::USBD>;
+ 6 | |     CLOCK_POWER => usb::vbus_detect::InterruptHandler;
+ 7 | |     UARTE0 => buffered_uarte::InterruptHandler<peripherals::UARTE0>;
+...  |
+11 | |     SPIM3 => spim::InterruptHandler<peripherals::SPI3>;
+12 | | });
+   | |__^
+   |
+   = note: this error originates in the macro `bind_interrupts` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this attribute macro
+   |
+ 1 + use core::derive;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/module/battery.rs:23:46
+   |
+23 |     async fn try_get_battery_state(&self) -> Option<BatteryState>;
+   |                                              ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/module/battery.rs:26:10
+   |
+26 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, BatteryState>>;
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/battery.rs:29:1
+   |
+29 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+ --> crates/wio-l1/src/module/blink.rs:7:1
+  |
+7 | #[embassy_executor::task]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+  |
+  = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+  |
+1 + use core::marker::Sized;
+  |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/module/gnss.rs:20:10
+   |
+20 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, GnssState>>;
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/gnss.rs:23:1
+   |
+23 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/gnss.rs:93:13
+   |
+93 |             Ok(Ok(bytes_read)) => {
+   |             ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/gnss.rs:93:16
+   |
+93 |             Ok(Ok(bytes_read)) => {
+   |                ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:104:13
+    |
+104 |             Ok(Err(e)) => {
+    |             ^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Ok;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:104:16
+    |
+104 |             Ok(Err(e)) => {
+    |                ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:139:16
+    |
+139 |         if let Ok(sentence) = stream.next(&mut uart).await {
+    |                ^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Ok;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:143:28
+    |
+143 |                     if let Some(lat) = gga_data.latitude {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:147:28
+    |
+147 |                     if let Some(lng) = gga_data.longitude {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:150:28
+    |
+150 |                     if let Some(alt) = gga_data.altitude {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:155:28
+    |
+155 |                     if let Some(lat) = rmc_data.lat {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/gnss.rs:158:28
+    |
+158 |                     if let Some(lng) = rmc_data.lon {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0405]: cannot find trait `Default` in this scope
+  --> crates/wio-l1/src/module/radio.rs:34:6
+   |
+34 | impl Default for CommonConfig {
+   |      ^^^^^^^ not found in this scope
+   |
+help: consider importing this trait
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0405]: cannot find trait `Default` in this scope
+  --> crates/wio-l1/src/module/radio.rs:63:6
+   |
+63 | impl Default for LoraConfig {
+   |      ^^^^^^^ not found in this scope
+   |
+help: consider importing this trait
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0405]: cannot find trait `Default` in this scope
+   --> crates/wio-l1/src/module/radio.rs:105:6
+    |
+105 | impl Default for RadioConfig {
+    |      ^^^^^^^ not found in this scope
+    |
+help: consider importing this trait
+    |
+  1 + use core::default::Default;
+    |
+
+error[E0425]: cannot find type `Option` in this scope
+   --> crates/wio-l1/src/module/radio.rs:118:10
+    |
+118 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, RadioConfig>>;
+    |          ^^^^^^ not found in this scope
+    |
+help: consider importing this enum
+    |
+  1 + use core::option::Option;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+   --> crates/wio-l1/src/module/radio.rs:121:1
+    |
+121 | #[embassy_executor::task]
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+    = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+    |
+  1 + use core::marker::Sized;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/radio.rs:152:9
+    |
+152 |         Some(cw) => cw,
+    |         ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/radio.rs:161:12
+    |
+161 |     if let Err(e) = set_radio_params(&mut radio, config_watcher.get().await).await {
+    |            ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/radio.rs:177:24
+    |
+177 |                 if let Err(e) = set_radio_params(&mut radio, c).await {
+    |                        ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/radio.rs:182:24
+    |
+182 |                 if let Err(e) = res {
+    |                        ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0425]: cannot find type `Result` in this scope
+   --> crates/wio-l1/src/module/radio.rs:198:6
+    |
+198 | ) -> Result<(), RegifaceError> {
+    |      ^^^^^^ not found in this scope
+    |
+help: consider importing one of these items
+    |
+  1 + use core::fmt::Result;
+    |
+  1 + use core::io::Result;
+    |
+  1 + use core::result::Result;
+    |
+  1 + use usbd_hid::Result;
+    |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Ok` in this scope
+   --> crates/wio-l1/src/module/radio.rs:351:5
+    |
+351 |     Ok(())
+    |     ^^ not found in this scope
+    |
+help: consider importing one of these items
+    |
+  1 + use core::result::Result::Ok;
+    |
+  1 + use embassy_usb::class::dfu::consts::Status::Ok;
+    |
+
+error[E0425]: cannot find type `Result` in this scope
+   --> crates/wio-l1/src/module/radio.rs:358:6
+    |
+358 | ) -> Result<(), RegifaceError> {
+    |      ^^^^^^ not found in this scope
+    |
+help: consider importing one of these items
+    |
+  1 + use core::fmt::Result;
+    |
+  1 + use core::io::Result;
+    |
+  1 + use core::result::Result;
+    |
+  1 + use usbd_hid::Result;
+    |
+
+error[E0405]: cannot find trait `From` in this scope
+  --> crates/wio-l1/src/module/usb.rs:18:6
+   |
+18 | impl From<EndpointError> for Disconnected {
+   |      ^^^^ not found in this scope
+   |
+help: consider importing this trait
+   |
+ 1 + use core::convert::From;
+   |
+
+error[E0425]: cannot find type `Result` in this scope
+  --> crates/wio-l1/src/module/usb.rs:27:72
+   |
+27 | pub async fn echo<'d>(class: &mut CdcAcmClass<'d, impl Driver<'d>>) -> Result<(), Disconnected> {
+   |                                                                        ^^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+ 1 + use core::fmt::Result;
+   |
+ 1 + use core::io::Result;
+   |
+ 1 + use core::result::Result;
+   |
+ 1 + use usbd_hid::Result;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/usb.rs:37:1
+   |
+37 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/usb.rs:80:12
+   |
+80 |     if let Ok((hz,)) = CommandParser::parse(line)
+   |            ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+   --> crates/wio-l1/src/module/usb.rs:107:17
+    |
+107 |                 Ok(n) => n,
+    |                 ^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Ok;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/usb.rs:108:17
+    |
+108 |                 Err(_) => break,
+    |                 ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/usb.rs:112:28
+    |
+112 |                     if let Some(cmd) = crate::terminal::handle_command(&cmd_buf[..cmd_len]) {
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/usb.rs:95:1
+   |
+95 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+   --> crates/wio-l1/src/module/usb.rs:143:1
+    |
+143 | #[embassy_executor::task]
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+    = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+    |
+  1 + use core::marker::Sized;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+   --> crates/wio-l1/src/module/usb.rs:148:1
+    |
+148 | #[embassy_executor::task]
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+    = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+    |
+  1 + use core::marker::Sized;
+    |
+
+error[E0425]: cannot find function `get_mac_addr` in the crate root
+   --> crates/wio-l1/src/module/usb.rs:168:22
+    |
+168 |     let mac = crate::get_mac_addr();
+    |                      ^^^^^^^^^^^^ not found in the crate root
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/usb.rs:180:27
+    |
+180 |     config.manufacturer = Some("Seeed");
+    |                           ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/usb.rs:181:22
+    |
+181 |     config.product = Some("Wio Tracker L1 Pro");
+    |                      ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/usb.rs:182:28
+    |
+182 |     config.serial_number = Some(serial_string.as_str());
+    |                            ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+   --> crates/wio-l1/src/module/usb.rs:159:1
+    |
+159 | #[embassy_executor::task]
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+    = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+    |
+  1 + use core::marker::Sized;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/oled.rs:45:17
+   |
+45 |                 Ok(_) => 0x3c,
+   |                 ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/oled.rs:46:17
+   |
+46 |                 Err(twim::Error::AddressNack) => 0x3d,
+   |                 ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/oled.rs:47:17
+   |
+47 |                 Err(e) => {
+   |                 ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/oled.rs:56:16
+   |
+56 |         if let Err(e) = i2c.read(addr, &mut buf).await {
+   |                ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/oled.rs:69:16
+   |
+69 |         if let Err(e) = display.init().await {
+   |                ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/oled.rs:74:16
+   |
+74 |         if let Err(e) = display.flush().await {
+   |                ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+   --> crates/wio-l1/src/module/oled.rs:108:24
+    |
+108 |                 if let Ok(event) = receiver.try_receive() {
+    |                        ^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Ok;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/oled.rs:113:20
+    |
+113 |             if let Some(b_state) = battery_watcher.try_changed() {
+    |                    ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/module/oled.rs:123:20
+    |
+123 |             if let Some(gnss_state) = gnss_watcher.try_changed() {
+    |                    ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/module/oled.rs:151:20
+    |
+151 |             if let Err(e) = target.display_mut().flush().await {
+    |                    ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/oled.rs:28:1
+   |
+28 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/joystick.rs:14:1
+   |
+14 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/joystick.rs:51:16
+   |
+51 |         if let Err(embassy_sync::channel::TrySendError::Full(event)) =
+   |                ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/joystick.rs:62:16
+   |
+62 |         if let Err(embassy_sync::channel::TrySendError::Full(event)) =
+   |                ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/joystick.rs:39:1
+   |
+39 | #[embassy_executor::task(pool_size = 6)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/module/compass.rs:32:10
+   |
+32 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, CompassState>>;
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/compass.rs:56:9
+   |
+56 |         Ok(device) => device,
+   |         ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/compass.rs:57:9
+   |
+57 |         Err(e) => {
+   |         ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/compass.rs:69:13
+   |
+69 |             Ok(device) => device,
+   |             ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+  --> crates/wio-l1/src/module/compass.rs:70:13
+   |
+70 |             Err(e) => {
+   |             ^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Err;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/compass.rs:85:16
+   |
+85 |         if let Ok(res) = mag.data_ready_async().await {
+   |                ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/module/compass.rs:87:24
+   |
+87 |                 if let Ok(reading) = mag.read_magnetometer_gauss_async().await {
+   |                        ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0405]: cannot find trait `Sized` in this scope
+  --> crates/wio-l1/src/module/compass.rs:35:1
+   |
+35 | #[embassy_executor::task]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+   |
+ 1 + use core::marker::Sized;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/system/mod.rs:56:48
+   |
+56 |     fn try_get_gnss_state_watcher(&'a self) -> Option<watch::DynReceiver<'a, gnss::GnssState>> {
+   |                                                ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/system/mod.rs:66:46
+   |
+66 |     async fn try_get_battery_state(&self) -> Option<battery::BatteryState> {
+   |                                              ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/system/mod.rs:72:10
+   |
+72 |     ) -> Option<watch::DynReceiver<'a, battery::BatteryState>> {
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/system/mod.rs:85:10
+   |
+85 |     ) -> Option<watch::DynReceiver<'a, compass::CompassState>> {
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/system/mod.rs:97:10
+   |
+97 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, radio::RadioConfig>> {
+   |          ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0404]: expected trait, found struct `radio::RadioResources`
+   --> crates/wio-l1/src/system/mod.rs:102:10
+    |
+102 | impl<'a> radio::RadioResources<'a> for SystemState {
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^ not a trait
+    |
+help: consider importing this trait instead
+    |
+  1 + use common::module::radio::RadioResources;
+    |
+help: if you import `RadioResources`, refer to it directly
+    |
+102 - impl<'a> radio::RadioResources<'a> for SystemState {
+102 + impl<'a> RadioResources<'a> for SystemState {
+    |
+
+error[E0425]: cannot find type `Option` in this scope
+   --> crates/wio-l1/src/system/mod.rs:109:10
+    |
+109 |     ) -> Option<embassy_sync::watch::DynReceiver<'a, radio::RadioConfig>> {
+    |          ^^^^^^ not found in this scope
+    |
+help: consider importing this enum
+    |
+  1 + use core::option::Option;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Some` in this scope
+   --> crates/wio-l1/src/system/mod.rs:123:13
+    |
+123 |             Some(w) => w,
+    |             ^^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::option::Option::Some;
+    |
+
+error[E0405]: cannot find trait `Sized` in this scope
+   --> crates/wio-l1/src/system/mod.rs:114:1
+    |
+114 | #[embassy_executor::task]
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+    = note: this error originates in the attribute macro `embassy_executor::task` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this trait
+    |
+  1 + use core::marker::Sized;
+    |
+
+error[E0425]: cannot find type `Option` in this scope
+   --> crates/wio-l1/src/system/mod.rs:144:13
+    |
+144 |     _state: Option<gnss::GnssState>,
+    |             ^^^^^^ not found in this scope
+    |
+help: consider importing this enum
+    |
+  1 + use core::option::Option;
+    |
+
+error[E0531]: cannot find tuple struct or tuple variant `Err` in this scope
+   --> crates/wio-l1/src/system/mod.rs:148:12
+    |
+148 |     if let Err(e) = tx_buf.extend_from_slice(b"hello") {
+    |            ^^^ not found in this scope
+    |
+help: consider importing this tuple variant
+    |
+  1 + use core::result::Result::Err;
+    |
+
+error[E0425]: cannot find type `Option` in this scope
+  --> crates/wio-l1/src/terminal.rs:12:39
+   |
+12 | pub fn handle_command(line: &[u8]) -> Option<AtCommand> {
+   |                                       ^^^^^^ not found in this scope
+   |
+help: consider importing this enum
+   |
+ 1 + use core::option::Option;
+   |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+  --> crates/wio-l1/src/terminal.rs:20:16
+   |
+20 |         return Some(AtCommand::Ping);
+   |                ^^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::option::Option::Some;
+   |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+  --> crates/wio-l1/src/terminal.rs:30:16
+   |
+30 |         return Some(AtCommand::GetFrequency);
+   |                ^^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::option::Option::Some;
+   |
+
+error[E0531]: cannot find tuple struct or tuple variant `Ok` in this scope
+  --> crates/wio-l1/src/terminal.rs:33:12
+   |
+33 |     if let Ok((hz,)) = CommandParser::parse(line)
+   |            ^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::result::Result::Ok;
+   |
+
+error[E0425]: cannot find function, tuple struct or tuple variant `Some` in this scope
+  --> crates/wio-l1/src/terminal.rs:41:16
+   |
+41 |         return Some(AtCommand::SetFrequency(hz));
+   |                ^^^^ not found in this scope
+   |
+help: consider importing this tuple variant
+   |
+ 1 + use core::option::Option::Some;
+   |
+
+error[E0425]: cannot find value `None` in this scope
+  --> crates/wio-l1/src/terminal.rs:51:16
+   |
+51 |         return None;
+   |                ^^^^ not found in this scope
+   |
+help: consider importing one of these unit variants
+   |
+ 1 + use core::option::Option::None;
+   |
+ 1 + use buoyant::focus::Role::None;
+   |
+ 1 + use buoyant::render::TransitionOption::None;
+   |
+ 1 + use embassy_nrf::gpio::Pull::None;
+   |
+   = and 4 other candidates
+
+error[E0425]: cannot find value `None` in this scope
+  --> crates/wio-l1/src/terminal.rs:54:5
+   |
+54 |     None
+   |     ^^^^ not found in this scope
+   |
+help: consider importing one of these unit variants
+   |
+ 1 + use core::option::Option::None;
+   |
+ 1 + use buoyant::focus::Role::None;
+   |
+ 1 + use buoyant::render::TransitionOption::None;
+   |
+ 1 + use embassy_nrf::gpio::Pull::None;
+   |
+   = and 4 other candidates
+
+error[E0603]: struct import `RadioResources` is private
+   --> crates/wio-l1/src/system/mod.rs:102:17
+    |
+102 | impl<'a> radio::RadioResources<'a> for SystemState {
+    |                 ^^^^^^^^^^^^^^ private struct import
+    |
+note: the struct import `RadioResources` is defined here...
+   --> crates/wio-l1/src/module/radio.rs:20:37
+    |
+ 20 | use crate::{device::hardware::Irqs, device::hardware::RadioResources};
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the struct `RadioResources` which is defined here
+   --> crates/wio-l1/src/device/wio_l1.rs:14:1
+    |
+ 14 | / assign_resources! {
+ 15 | |     usb: UsbResources {
+ 16 | |         usbd: USBD,
+ 17 | |     },
+...   |
+ 70 | | }
+    | |_^ you could import this directly
+    = note: this error originates in the macro `assign_resources` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing this struct instead
+    |
+102 - impl<'a> radio::RadioResources<'a> for SystemState {
+102 + impl<'a> crate::device::wio_l1::RadioResources<'a> for SystemState {
+    |
+
+warning: unused import: `core::fmt::Write`
+ --> crates/wio-l1/src/log_style.rs:1:5
+  |
+1 | use core::fmt::Write;
+  |     ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ThreadModeRawMutex`
+ --> crates/wio-l1/src/module/battery.rs:5:51
+  |
+5 | use embassy_sync::blocking_mutex::raw::{RawMutex, ThreadModeRawMutex};
+  |                                                   ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `embassy_sync::watch::Watch`
+ --> crates/wio-l1/src/module/battery.rs:6:5
+  |
+6 | use embassy_sync::watch::Watch;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Instant` and `with_timeout`
+ --> crates/wio-l1/src/module/battery.rs:7:30
+  |
+7 | use embassy_time::{Duration, Instant, Ticker, Timer, with_timeout};
+  |                              ^^^^^^^                 ^^^^^^^^^^^^
+
+warning: unused imports: `Channel`, `ThreadModeRawMutex`, `lazy_lock::LazyLock`, and `self`
+  --> crates/wio-l1/src/module/radio.rs:8:51
+   |
+ 8 |     blocking_mutex::raw::{NoopRawMutex, RawMutex, ThreadModeRawMutex},
+   |                                                   ^^^^^^^^^^^^^^^^^^
+ 9 |     lazy_lock::LazyLock,
+   |     ^^^^^^^^^^^^^^^^^^^
+10 |     zerocopy_channel::{self, Channel, Receiver},
+   |                        ^^^^  ^^^^^^^
+
+warning: unused import: `delay::DelayNs`
+  --> crates/wio-l1/src/module/radio.rs:13:26
+   |
+13 | use embedded_hal_async::{delay::DelayNs, spi::SpiDevice};
+   |                          ^^^^^^^^^^^^^^
+
+warning: unused import: `core::fmt::Write`
+ --> crates/wio-l1/src/module/usb.rs:3:5
+  |
+3 | use core::fmt::Write;
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `format`
+  --> crates/wio-l1/src/module/usb.rs:11:24
+   |
+11 | use heapless::{String, format};
+   |                        ^^^^^^
+
+warning: unused import: `core::fmt::Write`
+ --> crates/wio-l1/src/module/oled.rs:1:5
+  |
+1 | use core::fmt::Write;
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused import: `embassy_sync::blocking_mutex::raw::NoopRawMutex`
+ --> crates/wio-l1/src/module/oled.rs:9:5
+  |
+9 | use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `embassy_sync::channel::Channel`
+  --> crates/wio-l1/src/module/oled.rs:10:5
+   |
+10 | use embassy_sync::channel::Channel;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `core::cell::RefCell`
+ --> crates/wio-l1/src/module/compass.rs:1:5
+  |
+1 | use core::cell::RefCell;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `serde::de`
+ --> crates/wio-l1/src/module/compass.rs:7:5
+  |
+7 | use serde::de;
+  |     ^^^^^^^^^
+
+warning: unused imports: `mutex::Mutex` and `signal::Signal`
+ --> crates/wio-l1/src/system/mod.rs:8:5
+  |
+8 |     mutex::Mutex,
+  |     ^^^^^^^^^^^^
+9 |     signal::Signal,
+  |     ^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `Irqs: Copy` is not satisfied
+   --> crates/wio-l1/src/device/wio_l1.rs:4:1
+    |
+  4 | / bind_interrupts!(pub struct Irqs {
+  5 | |     USBD => usb::InterruptHandler<peripherals::USBD>;
+  6 | |     CLOCK_POWER => usb::vbus_detect::InterruptHandler;
+  7 | |     UARTE0 => buffered_uarte::InterruptHandler<peripherals::UARTE0>;
+...   |
+ 11 | |     SPIM3 => spim::InterruptHandler<peripherals::SPI3>;
+ 12 | | });
+    | |__^ the trait `Copy` is not implemented for `Irqs`
+    |
+note: required by a bound in `Binding`
+   --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-hal-internal-0.5.0/src/interrupt.rs:140:72
+    |
+140 |                   pub unsafe trait Binding<I: Interrupt, H: Handler<I>>: Copy {}
+    |                                                                          ^^^^ required by this bound in `Binding`
+    |
+   ::: /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-nrf-0.10.0/src/chips/nrf52840.rs:357:1
+    |
+357 | / embassy_hal_internal::interrupt_mod!(
+358 | |     CLOCK_POWER,
+359 | |     RADIO,
+360 | |     UARTE0,
+...   |
+400 | |     SPIM3,
+401 | | );
+    | |_- in this macro invocation
+    = note: this error originates in the macro `bind_interrupts` which comes from the expansion of the macro `embassy_hal_internal::interrupt_mod` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `Irqs` with `#[derive(Copy)]`
+   --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-nrf-0.10.0/src/lib.rs:264:1
+    |
+264 +         #[derive(Copy)]
+265 |         $vis struct $name;
+    |
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::saadc::Config` in the current scope
+  --> crates/wio-l1/src/module/battery.rs:39:37
+   |
+39 |     let mut config = saadc::Config::default();
+   |                                     ^^^^^^^ associated function or constant not found in `embassy_nrf::saadc::Config`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0599]: no associated function or constant named `default` found for struct `BatteryState` in the current scope
+  --> crates/wio-l1/src/module/battery.rs:52:43
+   |
+17 | pub struct BatteryState {
+   | ----------------------- associated function or constant `default` not found for this struct
+...
+52 |     let mut battery_state = BatteryState::default();
+   |                                           ^^^^^^^ associated function or constant not found in `BatteryState`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `default`, perhaps you need to implement it:
+           candidate #1: `core::default::Default`
+
+warning: variable does not need to be mutable
+  --> crates/wio-l1/src/module/gnss.rs:26:5
+   |
+26 |     mut r: GnssResources,
+   |     ----^
+   |     |
+   |     help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::uarte::Config` in the current scope
+  --> crates/wio-l1/src/module/gnss.rs:67:41
+   |
+67 |         let mut config = uarte::Config::default();
+   |                                         ^^^^^^^ associated function or constant not found in `embassy_nrf::uarte::Config`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::uarte::Config` in the current scope
+   --> crates/wio-l1/src/module/gnss.rs:116:37
+    |
+116 |     let mut config = uarte::Config::default();
+    |                                     ^^^^^^^ associated function or constant not found in `embassy_nrf::uarte::Config`
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+    |
+  1 + use core::default::Default;
+    |
+
+error[E0599]: no associated function or constant named `default` found for struct `GnssState` in the current scope
+   --> crates/wio-l1/src/module/gnss.rs:137:37
+    |
+ 10 | pub struct GnssState {
+    | -------------------- associated function or constant `default` not found for this struct
+...
+137 |     let mut gnss_state = GnssState::default();
+    |                                     ^^^^^^^ associated function or constant not found in `GnssState`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `default`, perhaps you need to implement it:
+            candidate #1: `core::default::Default`
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::spim::Config` in the current scope
+   --> crates/wio-l1/src/module/radio.rs:137:36
+    |
+137 |     let mut config = spim::Config::default();
+    |                                    ^^^^^^^ associated function or constant not found in `embassy_nrf::spim::Config`
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+    |
+  1 + use core::default::Default;
+    |
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::twim::Config` in the current scope
+  --> crates/wio-l1/src/module/oled.rs:36:40
+   |
+36 |         let mut config = twim::Config::default();
+   |                                        ^^^^^^^ associated function or constant not found in `embassy_nrf::twim::Config`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0599]: no method named `into` found for struct `embedded_graphics::geometry::Size` in the current scope
+   --> crates/wio-l1/src/module/oled.rs:82:31
+    |
+ 82 |     let size = display.size().into();
+    |                               ^^^^
+    |
+   ::: /home/main/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/convert/mod.rs:456:8
+    |
+456 |     fn into(self) -> T;
+    |        ---- the method is available for `embedded_graphics::geometry::Size` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Into` which provides `into` is implemented but not in scope; perhaps you want to import it
+    |
+  1 + use core::convert::Into;
+    |
+help: there is a method `try_into` with a similar name
+    |
+ 82 |     let size = display.size().try_into();
+    |                               ++++
+
+error[E0599]: no associated function or constant named `default` found for struct `embassy_nrf::twim::Config` in the current scope
+  --> crates/wio-l1/src/module/compass.rs:39:36
+   |
+39 |     let mut config = twim::Config::default();
+   |                                    ^^^^^^^ associated function or constant not found in `embassy_nrf::twim::Config`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0599]: no associated function or constant named `default` found for struct `MahonyParams` in the current scope
+  --> crates/wio-l1/src/module/compass.rs:78:32
+   |
+78 |     let params = MahonyParams::default();
+   |                                ^^^^^^^ associated function or constant not found in `MahonyParams`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Default` which provides `default` is implemented but not in scope; perhaps you want to import it
+   |
+ 1 + use core::default::Default;
+   |
+
+error[E0277]: the trait bound `GnssState: Clone` is not satisfied
+  --> crates/wio-l1/src/system/mod.rs:21:18
+   |
+21 |     gnss_config: Watch<ThreadModeRawMutex, gnss::GnssState, 1>,
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `GnssState`
+   |
+note: required by a bound in `Watch`
+  --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-sync-0.8.0/src/watch.rs:69:34
+   |
+69 | pub struct Watch<M: RawMutex, T: Clone, const N: usize> {
+   |                                  ^^^^^ required by this bound in `Watch`
+help: consider annotating `GnssState` with `#[derive(Clone)]`
+  --> crates/wio-l1/src/module/gnss.rs:10:1
+   |
+10 + #[derive(Clone)]
+11 | pub struct GnssState {
+   |
+
+error[E0277]: the trait bound `BatteryState: Clone` is not satisfied
+  --> crates/wio-l1/src/system/mod.rs:22:14
+   |
+22 |     battery: Watch<ThreadModeRawMutex, battery::BatteryState, 1>,
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `BatteryState`
+   |
+note: required by a bound in `Watch`
+  --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-sync-0.8.0/src/watch.rs:69:34
+   |
+69 | pub struct Watch<M: RawMutex, T: Clone, const N: usize> {
+   |                                  ^^^^^ required by this bound in `Watch`
+help: consider annotating `BatteryState` with `#[derive(Clone)]`
+  --> crates/wio-l1/src/module/battery.rs:17:1
+   |
+17 + #[derive(Clone)]
+18 | pub struct BatteryState {
+   |
+
+error[E0277]: the trait bound `module::radio::RadioConfig: Clone` is not satisfied
+  --> crates/wio-l1/src/system/mod.rs:23:19
+   |
+23 |     radio_config: Watch<ThreadModeRawMutex, radio::RadioConfig, 1>,
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Clone` is not implemented for `module::radio::RadioConfig`
+  --> crates/wio-l1/src/module/radio.rs:94:1
+   |
+94 | pub struct RadioConfig {
+   | ^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `Watch`
+  --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-sync-0.8.0/src/watch.rs:69:34
+   |
+69 | pub struct Watch<M: RawMutex, T: Clone, const N: usize> {
+   |                                  ^^^^^ required by this bound in `Watch`
+
+error[E0277]: the trait bound `CompassState: Clone` is not satisfied
+  --> crates/wio-l1/src/system/mod.rs:27:14
+   |
+27 |     compass: Watch<ThreadModeRawMutex, compass::CompassState, 1>,
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `CompassState`
+   |
+note: required by a bound in `Watch`
+  --> /home/main/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/embassy-sync-0.8.0/src/watch.rs:69:34
+   |
+69 | pub struct Watch<M: RawMutex, T: Clone, const N: usize> {
+   |                                  ^^^^^ required by this bound in `Watch`
+help: consider annotating `CompassState` with `#[derive(Clone)]`
+  --> crates/wio-l1/src/module/compass.rs:24:1
+   |
+24 + #[derive(Clone)]
+25 | pub struct CompassState {
+   |
+
+Some errors have detailed explanations: E0277, E0404, E0405, E0425, E0432, E0433, E0463, E0531, E0599...
+For more information about an error, try `rustc --explain E0277`.
+warning: `wio-l1` (lib) generated 15 warnings
+error: could not compile `wio-l1` (lib) due to 131 previous errors; 15 warnings emitted

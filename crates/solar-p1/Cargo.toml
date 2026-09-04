@@ -1,0 +1,109 @@
+[package]
+name = "solar-p1"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+buoyant = "0.7.0"
+defmt = { version = "1.1.0" }
+defmt-rtt = { version = "1.2.0" }
+embedded-graphics = "0.8.2"
+embedded-graphics-core = "0.4.1"
+libm = "0.2.16"
+sx1262 = { git = "https://github.com/BroderickCarlin/SX1262", branch = "main", default-features = false }
+embedded-io-async = { version = "0.7.0" }
+embassy-futures = { version = "0.1.2" }
+embassy-sync = { version = "0.8.0" }
+embassy-executor = { workspace = true, features = [
+    "platform-cortex-m",
+    "executor-thread",
+    "executor-interrupt",
+] }
+embassy-time = { workspace = true }
+embassy-nrf = { version = "0.10.0", features = [
+    "nrf52840",
+    "time-driver-rtc1",
+    "gpiote",
+    "unstable-pac",
+    "time",
+    "net-driver",
+    "nfc-pins-as-gpio",
+] }
+embassy-usb = { version = "0.6.0" }
+static_cell = { version = "2" }
+cortex-m = { version = "0.7.6", features = [
+    "inline-asm",
+    "critical-section-single-core",
+] }
+cortex-m-rt = "0.7.0"
+panic-probe = "1.0.0"
+rand = { version = "0.10.1", default-features = false }
+embedded-storage = "0.3.1"
+usbd-hid = "0.10.0"
+serde = { version = "1.0.136", default-features = false }
+embedded-hal = { version = "1.0" }
+embedded-hal-async = { version = "1.0" }
+embedded-hal-bus = { version = "0.1", features = ["async"] }
+num-integer = { version = "0.1.45", default-features = false }
+embassy-usb-logger = "0.6.0"
+portable-atomic = "1"
+log = "0.4.29"
+embedded-alloc = "0.7.0"
+assign-resources = "0.5.0"
+oled_async = { git = "https://github.com/techmccat/sh1106.git", branch = "master", features = [
+    "i2c",
+] }
+display-interface-i2c = "0.5.0"
+lora-phy = "3.0.1"
+heapless = "0.9.3"
+uf-ahrs = "0.2.1"
+embassy-embedded-hal = "0.6.0"
+regiface = "0.2.5"
+at-commands = "0.5.8"
+u8g2-fonts = { version = "0.7.1", features = ["embedded_graphics_textstyle"] }
+
+
+[dependencies.nmea-stream]
+path = "../nmea-stream"
+features = [
+    "GGA",
+    "RMC",
+    # "GNSS", 
+    # "TXT"
+]
+
+[dependencies.interface]
+path = "../interface"
+
+[dependencies.lis3mdl]
+path = "../lis3mdl"
+
+[dependencies.lsm6ds3]
+path = "../lsm6ds3"
+
+
+[features]
+default = ["solar-p1"]
+defmt = [
+    # "dep:defmt",
+    # "dep:defmt-rtt",
+    "panic-probe/print-defmt",
+    "embassy-sync/defmt",
+    "embassy-executor/defmt",
+    "embassy-time/defmt",
+    "embassy-time/defmt-timestamp-uptime",
+    "embassy-nrf/defmt",
+    "embassy-usb/defmt",
+    # "nmea-stream/defmt",
+]
+has-compass = []
+has-oled = []
+has-buzzer = []
+has-joystick = []
+wio-l1 = ["has-compass", "has-joystick", "has-oled"]
+solar-p1 = []
+
+[profile.release]
+# opt-level = "s"
+# lto = "fat"
+debug = true

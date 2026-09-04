@@ -1,0 +1,30 @@
+[package]
+name = "nmea-stream"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+embedded-io-async = { version = "0.7.0" }
+nmea = { version = "0.7", default-features = false }
+
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+mock-embedded-io = { path = "../mock-embedded-io" }
+nmea = { version = "0.7", default-features = true }
+
+[features]
+default = []
+APA = ["nmea/APA"]
+ALM = ["nmea/ALM"]
+GBS = ["nmea/GBS"]
+GGA = ["nmea/GGA"]
+GLL = ["nmea/GLL"]
+GNS = ["nmea/GNS"]
+GSA = ["nmea/GSA"]
+GST = ["nmea/GST"]
+GSV = ["nmea/GSV"]
+RMC = ["nmea/RMC"]
+VTG = ["nmea/VTG"]
+TXT = ["nmea/TXT"]
+GNSS = ["nmea/GNSS"]
