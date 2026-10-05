@@ -54,8 +54,10 @@ oled_async = { git = "https://github.com/techmccat/sh1106.git", branch = "master
 ] }
 panic-probe = { workspace = true }
 portable-atomic = { workspace = true }
+postcard = { workspace = true }
 rand = { workspace = true, default-features = false }
 regiface = { workspace = true }
+sequential-storage = { workspace = true }
 serde = { workspace = true, default-features = false }
 static_cell = { workspace = true }
 sx1262 = { git = "https://github.com/BroderickCarlin/SX1262", branch = "main", default-features = false }
@@ -76,6 +78,9 @@ features = [
 [dependencies.common]
 path = "../common"
 
+[dependencies.qcp]
+path = "../qcp"
+
 [dependencies.interface]
 path = "../interface"
 
@@ -86,10 +91,11 @@ path = "../lis3mdl"
 path = "../lsm6ds3"
 
 [features]
-default = ["wio-l1"]
+default = []
 defmt = [
     # "dep:defmt",
     # "dep:defmt-rtt",
+    "common/defmt",
     "panic-probe/print-defmt",
     "embassy-sync/defmt",
     "embassy-executor/defmt",
@@ -97,14 +103,12 @@ defmt = [
     "embassy-time/defmt-timestamp-uptime",
     "embassy-nrf/defmt",
     "embassy-usb/defmt",
+    "heapless/defmt",
+    "sequential-storage/defmt",
+    "lis3mdl/defmt",
+    "lsm6ds3/defmt",
     # "nmea-stream/defmt",
 ]
-has-compass = []
-has-oled = []
-has-buzzer = []
-has-joystick = []
-wio-l1 = ["has-compass", "has-joystick", "has-oled"]
-solar-p1 = []
 
 [profile.release]
 # opt-level = "s"

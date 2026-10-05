@@ -37,7 +37,7 @@ pub async fn runner(
     Timer::after_millis(1).await;
 
     let mut config = saadc::Config::default();
-    config.resolution = saadc::Resolution::_8BIT;
+    config.resolution = saadc::Resolution::_12BIT;
     config.oversample = saadc::Oversample::BYPASS;
 
     let mut channel_config = saadc::ChannelConfig::single_ended(r.adc_read);
@@ -56,7 +56,7 @@ pub async fn runner(
         let mut buf = [0i16; 1];
         saadc.sample(&mut buf).await;
 
-        let sample = buf[0] as i32;
+        let sample = (buf[0] as i32).max(0);
 
         // Convert to millivolts at the ADC pin
         let v_pin_mv = (sample * VREF_MV) / ADC_MAX;

@@ -121,15 +121,32 @@ pub async fn runner(
             }
 
             if let Some(gnss_state) = gnss_watcher.try_changed() {
-                app.state_mut().location.latitude = gnss_state.latitude;
-                app.state_mut().location.longitude = gnss_state.longitude;
-                app.state_mut().location.altitude = gnss_state.altitude;
+                let mut app_state = app.state_mut();
+                app_state.location.coordinate.latitude = gnss_state.latitude;
+                app_state.location.coordinate.longitude = gnss_state.longitude;
+                app_state.location.coordinate.altitude = gnss_state.altitude;
 
-                // for testing
-                app.state_mut().poi.id.push_str("ID-GROUND").unwrap();
-                app.state_mut().poi.latitude = gnss_state.latitude;
-                app.state_mut().poi.longitude = gnss_state.longitude;
-                app.state_mut().poi.altitude = gnss_state.altitude;
+                // for testing: surface our own GNSS fix as a selectable POI
+                const GROUND_ID: &str = "ID-GROUND";
+                if let Some(ground) = app_state
+                    .visible_pois
+                    .iter_mut()
+                    .find(|poi| poi.id == GROUND_ID)
+                {
+                    ground.coordinate.latitude = gnss_state.latitude;
+                    ground.coordinate.longitude = gnss_state.longitude;
+                    ground.coordinate.altitude = gnss_state.altitude;
+                } else {
+                    let mut ground = interface::TrackedPOI::default();
+                    ground.id.push_str(GROUND_ID).unwrap();
+                    ground.coordinate.latitude = gnss_state.latitude;
+                    ground.coordinate.longitude = gnss_state.longitude;
+                    ground.coordinate.altitude = gnss_state.altitude;
+                    let _ = app_state.visible_pois.push(ground);
+                }
+                if app_state.poi_id.is_empty() {
+                    app_state.poi_id.push_str(GROUND_ID).unwrap();
+                }
             }
 
             // Update state after timeout

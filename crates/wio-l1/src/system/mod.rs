@@ -13,18 +13,20 @@ use embassy_sync::{
     zerocopy_channel,
 };
 mod config;
-use common::module::radio::{self, RadioConfigManager, RadioResources};
-pub use config::SystemConfig;
+use common::module::battery::BatteryState;
+use common::module::radio::{self, RadioResources};
+pub use config::{ConfigStorage, SystemConfig};
 use embassy_time::{Duration, Ticker, Timer};
 use embedded_hal_async::spi::SpiDevice;
 use embedded_hal_bus::spi::ExclusiveDevice;
+use qcp::RadioSettings;
 
-type Mutex = ThreadModeRawMutex;
+pub type Mutex = ThreadModeRawMutex;
+
 pub struct SystemState {
-    gnss_config: Watch<Mutex, gnss::GnssState, 1>,
-    battery: Watch<Mutex, battery::BatteryState, 1>,
-    radio_config: Watch<Mutex, radio::RadioConfig, 1>,
-    config: &'static SystemConfig,
+    gnss_config: Watch<Mutex, gnss::GnssState, 2>,
+    battery: Watch<Mutex, BatteryState, 1>,
+    pub config: &'static SystemConfig,
 
     #[cfg(feature = "has-compass")]
     compass: Watch<Mutex, compass::CompassState, 1>,
@@ -34,7 +36,6 @@ impl SystemState {
     pub fn new(config: &'static SystemConfig) -> Self {
         let gnss_config = Watch::new();
         let battery = Watch::new();
-        let radio_config = Watch::new();
 
         #[cfg(feature = "has-compass")]
         let compass = Watch::new();
@@ -42,7 +43,6 @@ impl SystemState {
         Self {
             gnss_config,
             battery,
-            radio_config,
             config,
 
             #[cfg(feature = "has-compass")]
@@ -61,18 +61,12 @@ impl<'a> gnss::GnssStateManager<'a> for SystemState {
     }
 }
 
-impl<'a> battery::BatteryStateManager<'a, Mutex> for SystemState {
-    async fn set_battery_state(&self, state: &battery::BatteryState) {
-        self.battery.sender().send(*state);
+impl SystemState {
+    pub fn battery_sender(&self) -> watch::DynSender<'_, BatteryState> {
+        self.battery.dyn_sender()
     }
 
-    async fn try_get_battery_state(&self) -> Option<battery::BatteryState> {
-        self.battery.try_get()
-    }
-
-    fn try_get_battery_state_watcher(
-        &'a self,
-    ) -> Option<watch::DynReceiver<'a, battery::BatteryState>> {
+    pub fn try_get_battery_state_watcher(&self) -> Option<watch::DynReceiver<'_, BatteryState>> {
         self.battery.dyn_receiver()
     }
 }
@@ -87,18 +81,6 @@ impl<'a> compass::CompassStateManager<'a> for SystemState {
         &'a self,
     ) -> Option<watch::DynReceiver<'a, compass::CompassState>> {
         self.compass.dyn_receiver()
-    }
-}
-
-impl<'a> radio::RadioConfigManager<'a> for SystemState {
-    fn set_radio_config(&self, config: &radio::RadioConfig) {
-        self.radio_config.sender().send(*config);
-    }
-
-    fn try_get_radio_config_watcher(
-        &'a self,
-    ) -> Option<embassy_sync::watch::DynReceiver<'a, radio::RadioConfig>> {
-        self.radio_config.dyn_receiver()
     }
 }
 
@@ -172,7 +154,7 @@ impl
 pub async fn runner(
     _spawner: Spawner,
     state: &'static crate::system::SystemState,
-    mut radio_tx: zerocopy_channel::Sender<'static, NoopRawMutex, radio::RadioBuffer>,
+    mut radio_tx: zerocopy_channel::Sender<'static, Mutex, radio::RadioBuffer>,
 ) {
     info!("started system runner");
     let mut position_watch = {
@@ -197,7 +179,7 @@ pub async fn runner(
 }
 
 async fn radio_send(
-    radio_tx: &mut zerocopy_channel::Sender<'static, NoopRawMutex, radio::RadioBuffer>,
+    radio_tx: &mut zerocopy_channel::Sender<'static, Mutex, radio::RadioBuffer>,
     _state: Option<gnss::GnssState>,
 ) {
     let tx_buf = radio_tx.send().await;

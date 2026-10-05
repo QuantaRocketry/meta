@@ -1,12 +1,9 @@
 use core::fmt::Debug;
 
 use embedded_graphics::pixelcolor::BinaryColor;
+use qcp::TrackedPOI;
 
-use crate::{
-    event::{InterfaceEvent, NavigateEvent},
-    icons::BatteryIcon,
-    page::Page,
-};
+use crate::{icons::BatteryIcon, page::Page};
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct InterfaceState {
@@ -19,18 +16,12 @@ pub struct InterfaceState {
     pub clean_settings: CleanSettings,
     pub location: TrackedPOI,
     pub battery_percentage: f32,
-    pub poi: TrackedPOI,
+    pub poi_id: heapless::string::String<16>,
     pub poi_selector: Option<TrackedPOI>,
+    pub option_modal: Option<()>,
     pub heading: f32,
     pub battery_widget: BatteryIcon<BinaryColor>,
-}
-
-#[derive(Debug, Default, Clone, PartialEq)]
-pub struct TrackedPOI {
-    pub id: heapless::string::String<16>,
-    pub latitude: f64,
-    pub longitude: f64,
-    pub altitude: f32,
+    pub visible_pois: heapless::vec::Vec<TrackedPOI, 6>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

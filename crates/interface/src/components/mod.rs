@@ -7,7 +7,6 @@ mod bearing;
 mod modal;
 
 pub use bearing::Bearing;
-pub use modal::modal;
 
 use crate::{State, color, font};
 

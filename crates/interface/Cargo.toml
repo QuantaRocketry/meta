@@ -8,12 +8,14 @@ buoyant = { workspace = true }
 embedded-graphics = { workspace = true }
 embedded-graphics-core = { workspace = true }
 libm = { workspace = true }
+qcp = { path = "../qcp" }
+serde = { workspace = true, features = ["derive"] }
 
 # embedded-iconoir = { version = "0.2.3", default-features = false, features = [
 #     "12px",
 # ] }
-u8g2-fonts = { version = "0.7.1", features = ["embedded_graphics_textstyle"] }
-heapless = "0.9.3"
+u8g2-fonts = { workspace = true, features = ["embedded_graphics_textstyle"] }
+heapless = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
 embedded-graphics-simulator = "0.8"

@@ -5,6 +5,7 @@ edition = "2024"
 description = "I2C driver for the ST LIS3MDL magnetometer, built with the `device-driver` crate"
 
 [dependencies]
+defmt = { workspace = true, optional = true }
 device-driver = { version = "1.0", default-features = false, features = [
     "dsl",
 ] }
@@ -13,3 +14,6 @@ embedded-hal-async = "1.0.0"
 
 [dev-dependencies]
 linux-embedded-hal = "0.4"
+
+[features]
+defmt = ["dep:defmt"]

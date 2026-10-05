@@ -1,17 +1,59 @@
-use embassy_nrf::{gpio, spim};
+use core::ops::Range;
 
-#[cfg(feature = "wio-l1")]
-pub mod wio_l1;
+use embassy_nrf::{gpio, qspi, spim};
 use embedded_hal_bus::spi::ExclusiveDevice;
-#[cfg(feature = "wio-l1")]
-pub use wio_l1 as hardware;
+pub mod hardware;
 
-#[cfg(feature = "solar-p1")]
-pub mod solar_p1;
-#[cfg(feature = "solar-p1")]
-pub use solar_p1 as hardware;
+use crate::device::hardware::{BatteryResources, FlashResources, RadioResources};
+use crate::{info, warn};
 
-use crate::device::hardware::RadioResources;
+/// External P25Q16SH: 2MB, 4KB sectors.
+pub type ConfigFlash = qspi::Qspi<'static>;
+const FLASH_CAPACITY: u32 = 2 * 1024 * 1024;
+const JEDEC_ID_P25Q16SH: [u8; 3] = [0x85, 0x60, 0x15];
+
+/// Region of the external flash reserved for config storage (4 sectors).
+pub const CONFIG_FLASH_RANGE: Range<u32> = 0x0000..0x4000;
+
+pub async fn build_config_flash(r: FlashResources) -> ConfigFlash {
+    let mut config = qspi::Config::default();
+    config.capacity = FLASH_CAPACITY;
+    config.frequency = qspi::Frequency::M32;
+    // Single-line IO so we don't have to set the flash's quad-enable bit.
+    // Config data is tiny, so throughput doesn't matter.
+    config.read_opcode = qspi::ReadOpcode::FASTREAD;
+    config.write_opcode = qspi::WriteOpcode::PP;
+
+    let mut flash = qspi::Qspi::new(
+        r.qspi,
+        hardware::Irqs,
+        r.sck,
+        r.csn,
+        r.io0,
+        r.io1,
+        r.io2,
+        r.io3,
+        config,
+    );
+
+    // Release from deep power-down in case the bootloader left it asleep.
+    if let Err(e) = flash.custom_instruction(0xAB, &[], &mut []).await {
+        warn!("flash: release power-down failed: {:?}", e);
+    }
+
+    // Verify chip ID
+    let mut id = [0u8; 3];
+    match flash.custom_instruction(0x9F, &[], &mut id).await {
+        Ok(()) if id == JEDEC_ID_P25Q16SH => info!("flash: P25Q16SH detected"),
+        Ok(()) => warn!(
+            "flash: unexpected JEDEC id {:x} {:x} {:x}",
+            id[0], id[1], id[2]
+        ),
+        Err(e) => warn!("flash: JEDEC id read failed: {:?}", e),
+    }
+
+    flash
+}
 
 pub fn build_radio_resources(
     r: RadioResources,

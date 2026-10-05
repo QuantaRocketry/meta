@@ -15,7 +15,6 @@ use interface;
 use oled_async::displayrotation::DisplayRotation;
 use static_cell::ConstStaticCell;
 
-use crate::module::battery::BatteryStateManager;
 use crate::module::gnss::GnssStateManager;
 use crate::{device::hardware::Irqs, device::hardware::OledResources};
 use crate::{error, info};
@@ -113,23 +112,41 @@ pub async fn runner(
             if let Some(b_state) = battery_watcher.try_changed() {
                 const BATTERY_LOW_MV: u16 = 3400;
                 const BATTERY_HIGH_MV: u16 = 4200;
-                let mv = b_state.voltage_mv;
+                let mv = b_state.voltage_mv as f32;
 
-                let percent =
-                    (mv - BATTERY_LOW_MV) as f32 / (BATTERY_HIGH_MV - BATTERY_LOW_MV) as f32;
+                let percent = ((mv - BATTERY_LOW_MV as f32)
+                    / (BATTERY_HIGH_MV - BATTERY_LOW_MV) as f32)
+                    .clamp(0.0, 1.0);
                 app.state_mut().battery_percentage = percent;
             }
 
             if let Some(gnss_state) = gnss_watcher.try_changed() {
-                app.state_mut().location.latitude = gnss_state.latitude;
-                app.state_mut().location.longitude = gnss_state.longitude;
-                app.state_mut().location.altitude = gnss_state.altitude;
+                let mut app_state = app.state_mut();
+                app_state.location.coordinate.latitude = gnss_state.latitude;
+                app_state.location.coordinate.longitude = gnss_state.longitude;
+                app_state.location.coordinate.altitude = gnss_state.altitude;
 
-                // for testing
-                app.state_mut().poi.id.push_str("ID-GROUND").unwrap();
-                app.state_mut().poi.latitude = gnss_state.latitude;
-                app.state_mut().poi.longitude = gnss_state.longitude;
-                app.state_mut().poi.altitude = gnss_state.altitude;
+                // for testing: surface our own GNSS fix as a selectable POI
+                const GROUND_ID: &str = "ID-GROUND";
+                if let Some(ground) = app_state
+                    .visible_pois
+                    .iter_mut()
+                    .find(|poi| poi.id == GROUND_ID)
+                {
+                    ground.coordinate.latitude = gnss_state.latitude;
+                    ground.coordinate.longitude = gnss_state.longitude;
+                    ground.coordinate.altitude = gnss_state.altitude;
+                } else {
+                    let mut ground = interface::TrackedPOI::default();
+                    ground.id.push_str(GROUND_ID).unwrap();
+                    ground.coordinate.latitude = gnss_state.latitude;
+                    ground.coordinate.longitude = gnss_state.longitude;
+                    ground.coordinate.altitude = gnss_state.altitude;
+                    let _ = app_state.visible_pois.push(ground);
+                }
+                if app_state.poi_id.is_empty() {
+                    app_state.poi_id.push_str(GROUND_ID).unwrap();
+                }
             }
 
             // Update state after timeout

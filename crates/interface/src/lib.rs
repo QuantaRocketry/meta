@@ -3,7 +3,7 @@
 use buoyant::{
     event::Event,
     focus::{self, FocusAction},
-    view::prelude::*,
+    view::{map_event::Mapping, prelude::*},
 };
 
 mod components;
@@ -12,6 +12,7 @@ mod icons;
 mod page;
 mod state;
 
+pub use qcp::TrackedPOI;
 pub use state::InterfaceState as State;
 
 use page::Page;
@@ -25,7 +26,7 @@ pub mod spacing {
     /// Spacing between distinct visual components in a section / group
     pub const COMPONENT: u32 = 2;
     /// Spacing between elements within a component
-    pub const ELEMENT: u32 = 2;
+    pub const ELEMENT: u32 = 1;
 }
 
 #[allow(unused)]
@@ -59,11 +60,21 @@ pub mod font {
 }
 
 pub fn view(state: &State) -> impl View<color::Space, State> + use<> {
-    let paginate = |s: &mut State, event| match (event, s.page) {
-        (buoyant::view::paginate::PageEvent::Next, Page::Location) => s.page = Page::Settings,
-        (buoyant::view::paginate::PageEvent::Next, Page::Settings) => s.page = Page::Location,
-        (buoyant::view::paginate::PageEvent::Previous, Page::Location) => s.page = Page::Settings,
-        (buoyant::view::paginate::PageEvent::Previous, Page::Settings) => s.page = Page::Location,
+    let paginate = |s: &mut State, event| {
+        match (event, s.page) {
+            (buoyant::view::paginate::PageEvent::Next, Page::Location) => s.page = Page::Settings,
+            (buoyant::view::paginate::PageEvent::Next, Page::Settings) => s.page = Page::Location,
+            (buoyant::view::paginate::PageEvent::Previous, Page::Location) => {
+                s.page = Page::Settings
+            }
+            (buoyant::view::paginate::PageEvent::Previous, Page::Settings) => {
+                s.page = Page::Location
+            }
+        }
+        // Popovers belong to the page they were opened on.
+        s.clean_overlay = None;
+        s.poi_selector = None;
+        s.option_modal = None;
     };
 
     buoyant::view::Paginate::new(focus::GROUP_1, paginate, {
@@ -73,22 +84,28 @@ pub fn view(state: &State) -> impl View<color::Space, State> + use<> {
         })
     })
     .focus_touches()
-    .map_event::<(), _>(|event: &Event, _state| match event {
+    .map_event(|event: &Event, _state| match event {
         Event::KeyDown(key) => match key {
             buoyant::event::Key::LeftArrow => {
-                Some(FocusAction::Previous.into_event(focus::GROUP_1))
+                Mapping::Fallback(FocusAction::Previous.into_event(focus::GROUP_1))
             }
-            buoyant::event::Key::RightArrow => Some(FocusAction::Next.into_event(focus::GROUP_1)),
-            buoyant::event::Key::UpArrow => Some(FocusAction::Previous.into_event(focus::GROUP_0)),
-            buoyant::event::Key::DownArrow => Some(FocusAction::Next.into_event(focus::GROUP_0)),
+            buoyant::event::Key::RightArrow => {
+                Mapping::Fallback(FocusAction::Next.into_event(focus::GROUP_1))
+            }
+            buoyant::event::Key::UpArrow => {
+                Mapping::Fallback(FocusAction::Previous.into_event(focus::GROUP_0))
+            }
+            buoyant::event::Key::DownArrow => {
+                Mapping::Fallback(FocusAction::Next.into_event(focus::GROUP_0))
+            }
             buoyant::event::Key::Character(' ' | '\n') => {
-                Some(FocusAction::Select.into_event(focus::GROUP_0))
+                Mapping::Fallback(FocusAction::Select.into_event(focus::GROUP_0))
             }
-            buoyant::event::Key::Escape => Some(FocusAction::Blur.into_event(focus::GROUP_0)),
-            // Ignore all other key down events, don't allow children to handle
-            _ => None,
+            buoyant::event::Key::Escape => {
+                Mapping::Fallback(FocusAction::Blur.into_event(focus::GROUP_0))
+            }
+            _ => Mapping::Passthrough,
         },
-        Event::KeyUp(_) => None,
-        _ => Some(event.clone()),
+        _ => Mapping::Passthrough,
     })
 }

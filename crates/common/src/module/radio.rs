@@ -1,113 +1,55 @@
 use embassy_futures::select::*;
 use embassy_sync::{
     blocking_mutex::raw::RawMutex,
-    zerocopy_channel::{self, Channel, Receiver},
+    zerocopy_channel::Receiver,
 };
-use embassy_time::{Delay, Timer};
-use embedded_hal_async::{delay::DelayNs, spi::SpiDevice};
-use embedded_hal_bus::spi::ExclusiveDevice;
+use embassy_time::Timer;
+use embedded_hal_async::spi::SpiDevice;
+use qcp::RadioSettings;
 use regiface::errors::Error as RegifaceError;
-use sx1262::{self, *};
+use sx1262::{self, Error::SerializationError, *};
 
-use crate::{debug, error, info, warn};
+use crate::config::ConfigItem;
+use crate::{error, info};
 
 pub const RADIO_BUFFER_SIZE: usize = 127;
 pub const RADIO_TX_CHANNEL_LENGTH: usize = 2;
 pub type RadioBuffer = heapless::vec::Vec<u8, RADIO_BUFFER_SIZE>;
 
-#[derive(Debug, Copy, Clone)]
-pub struct CommonConfig {
-    /// RF carrier frequency in Hz.
-    pub frequency_hz: u32,
-    /// TX output power in dBm, passed straight to SetTxParams.
-    pub tx_power_dbm: i8,
+#[derive(Debug, Clone)]
+struct RadioParameters {
+    frequency_hz: u32,
+    packet_type: sx1262::PacketType,
+    modulation_params: sx1262::ModulationParams,
+    packet_params: sx1262::PacketParams,
 }
 
-impl Default for CommonConfig {
-    fn default() -> Self {
+impl From<RadioSettings> for RadioParameters {
+    fn from(value: RadioSettings) -> Self {
+        // TODO implement these somehow
+        // match value.protocol {
+        //     qcp::Protocol::Quanta => todo!(),
+        //     qcp::Protocol::Eggtimer(_) => todo!(),
+        //     qcp::Protocol::Uts => todo!(),
+        // }
         Self {
             frequency_hz: 915_000_000,
-            tx_power_dbm: 10,
+            packet_type: sx1262::PacketType::LoRa,
+            modulation_params: sx1262::ModulationParams::LoRa(LoRaModParams {
+                spreading_factor: SpreadingFactor::SF7,
+                bandwidth: LoRaBandwidth::Bw125,
+                coding_rate: CodingRate::Cr45,
+                low_data_rate_opt: false,
+            }),
+            packet_params: sx1262::PacketParams::LoRa(LoRaPacketParams {
+                preamble_length: 8,
+                header_type: LoraPacketHeaderType::Fixed,
+                payload_length: 0,
+                crc_enable: true,
+                iq_inversion_enable: false,
+            }),
         }
     }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct LoraConfig {
-    /// Spreading factor (SF5-SF12). Higher = more range, slower + more airtime.
-    pub spreading_factor: SpreadingFactor,
-    /// Signal bandwidth.
-    pub bandwidth: LoRaBandwidth,
-    /// Forward error correction coding rate.
-    pub coding_rate: CodingRate,
-    /// Enable for symbol durations >= 16.38ms (high SF + narrow BW).
-    low_data_rate_opt: bool,
-    /// Preamble length in symbols.
-    pub preamble_length: u16,
-    /// Append/check a CRC on the payload.
-    pub crc_enabled: bool,
-    /// Invert I/Q — set true on one side of a link if you want to avoid
-    /// hearing your own retransmissions (common convention: gateways invert,
-    /// nodes don't).
-    invert_iq: bool,
-}
-
-impl Default for LoraConfig {
-    fn default() -> Self {
-        Self {
-            spreading_factor: SpreadingFactor::SF7,
-            bandwidth: LoRaBandwidth::Bw125,
-            coding_rate: CodingRate::Cr45,
-            low_data_rate_opt: false,
-            preamble_length: 8,
-            crc_enabled: true,
-            invert_iq: false,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct GfskConfig {
-    /// Bit rate in bits/second.
-    pub bit_rate: u32,
-    /// Frequency deviation in Hz.
-    pub freq_deviation: u32,
-    /// Gaussian pulse shaping filter.
-    pub pulse_shape: GfskPulseShape,
-    /// RX channel filter bandwidth.
-    pub bandwidth: GfskBandwidth,
-    /// Preamble length in bytes.
-    pub preamble_length: u16,
-    /// Sync word length in bytes.
-    pub sync_word_length: u8,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum PhyConfig {
-    Lora(LoraConfig),
-    Gfsk(GfskConfig),
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct RadioConfig {
-    pub common: CommonConfig,
-    pub phy: PhyConfig,
-}
-
-impl Default for RadioConfig {
-    fn default() -> Self {
-        Self {
-            common: CommonConfig::default(),
-            phy: PhyConfig::Lora(LoraConfig::default()),
-        }
-    }
-}
-
-pub trait RadioConfigManager<'a> {
-    fn set_radio_config(&self, config: &RadioConfig);
-    fn try_get_radio_config_watcher(
-        &'a self,
-    ) -> Option<embassy_sync::watch::DynReceiver<'a, RadioConfig>>;
 }
 
 pub trait RadioResources<
@@ -125,69 +67,44 @@ pub async fn runner<
     Dio1: embedded_hal_async::digital::Wait,
     Mutex: RawMutex + 'static,
 >(
-    config_manager: &'a impl RadioConfigManager<'a>,
+    mut settings_manager: impl ConfigItem<'a, RadioSettings>,
     spi: Spi,
     mut dio1: Dio1,
     mut receiver: Receiver<'static, Mutex, RadioBuffer>,
 ) {
-    Timer::after_secs(3).await;
-
-    // let mut config = spim::Config::default();
-    // config.frequency = spim::Frequency::M4; // Set clock speed
-    // config.mode = spim::MODE_0; // CPOL=0, CPHA=0
-    // config.orc = 0x00; // Over-read character
-
-    // let nss = gpio::Output::new(r.cs, gpio::Level::High, gpio::OutputDrive::Standard);
-    // let reset = gpio::Output::new(r.reset, gpio::Level::High, gpio::OutputDrive::Standard);
-    // let mut dio1 = gpio::Input::new(r.dio1, gpio::Pull::Down);
-    // let busy = gpio::Input::new(r.busy, gpio::Pull::None);
-    // let rf_switch_rx = gpio::Output::new(r.sw, gpio::Level::Low, gpio::OutputDrive::Standard);
-
-    // let spim = spim::Spim::new(r.spi, Irqs, r.sck, r.miso, r.mosi, config);
-    // let spi = ExclusiveDevice::new(spim, nss, Delay);
-
-    // let (mut spi, mut dio1, mut receiver) = match r.try_get_resources() {
-    //     Ok(resources) => resources,
-    //     Err(e) => {
-    //         error!("Failed to get radio resources: {:?}", e);
-    //         return;
-    //     }
-    // };
-
-    let mut config_watcher = match config_manager.try_get_radio_config_watcher() {
-        Some(cw) => cw,
-        None => {
-            error!("failed to get radio config watcher");
+    let settings = match select(settings_manager.get(), Timer::after_secs(5)).await {
+        Either::First(s) => s,
+        Either::Second(_) => {
+            error!("Failed to get initial radio settings within timeout");
             return;
         }
     };
 
+    info!("Radio task started");
+
     let mut radio = sx1262::Device::new(spi);
 
-    if let Err(e) = set_radio_params(&mut radio, config_watcher.get().await).await {
-        error!("Failure configuring radio: {e:?}\nAborting radio module.");
+    if set_radio_params(&mut radio, settings.into()).await.is_err() {
+        error!("Failure configuring radio. Aborting radio module.");
         return;
     };
 
     loop {
         match select(
-            config_watcher.get(),
+            settings_manager.changed(),
             drive_radio(&mut radio, &mut dio1, &mut receiver),
         )
         .await
         {
-            Either::First(c) => {
-                // cleanup receiver, drops packet
-                receiver.receive_done();
-
-                if let Err(e) = set_radio_params(&mut radio, c).await {
-                    error!("Failure configuring radio after config update: {e:?}");
+            Either::First(s) => {
+                if set_radio_params(&mut radio, s.into()).await.is_err() {
+                    error!("Failure configuring radio after config update");
                 };
             }
             Either::Second(res) => {
-                if let Err(e) = res {
+                if res.is_err() {
                     // hardware error
-                    error!("sx1262 error: {:?}", e);
+                    error!("sx1262 error");
                 } else {
                     // this should never happen
                     error!("radio driver unexpectedly exited.");
@@ -200,8 +117,24 @@ pub async fn runner<
 
 async fn set_radio_params(
     radio: &mut sx1262::device::Device<impl SpiDevice>,
-    config: RadioConfig,
+    config: RadioParameters,
 ) -> Result<(), RegifaceError> {
+    // validate the config
+    {
+        match (
+            &config.packet_type,
+            &config.modulation_params,
+            &config.packet_params,
+        ) {
+            (PacketType::Gfsk, ModulationParams::Gfsk(_), PacketParams::GFSK(_)) => {}
+            (PacketType::LoRa, ModulationParams::LoRa(_), PacketParams::LoRa(_)) => {}
+            _ => {
+                error!("Invalid radio params");
+                return Err(SerializationError);
+            }
+        }
+    }
+
     // All config commands below require STDBY_RC.
     radio
         .execute_command_async(SetStandby {
@@ -222,105 +155,45 @@ async fn set_radio_params(
     radio
         .execute_command_async(SetBufferBaseAddress {
             config: BufferBaseAddressConfig {
-                tx_base_addr: 0,
-                rx_base_addr: 128,
+                tx_base_addr: 128,
+                rx_base_addr: 0,
             },
         })
         .await?;
 
-    match config.phy {
-        PhyConfig::Lora(c) => {
-            radio
-                .execute_command_async(SetPacketType {
-                    packet_type: PacketType::LoRa,
-                })
-                .await?;
+    radio
+        .execute_command_async(SetPacketType {
+            packet_type: config.packet_type,
+        })
+        .await?;
 
-            radio
-                .execute_command_async(SetRfFrequency {
-                    config: RfFrequencyConfig {
-                        frequency: config.common.frequency_hz,
-                    },
-                })
-                .await?;
+    radio
+        .execute_command_async(SetRfFrequency {
+            config: RfFrequencyConfig {
+                frequency: config.frequency_hz,
+            },
+        })
+        .await?;
 
-            radio
-                .execute_command_async(SetModulationParams {
-                    params: ModulationParams::LoRa(LoRaModParams {
-                        spreading_factor: c.spreading_factor,
-                        bandwidth: c.bandwidth,
-                        coding_rate: c.coding_rate,
-                        low_data_rate_opt: c.low_data_rate_opt,
-                    }),
-                })
-                .await?;
+    radio
+        .execute_command_async(SetModulationParams {
+            params: config.modulation_params,
+        })
+        .await?;
 
-            radio
-                .execute_command_async(SetPacketParams {
-                    params: PacketParams::LoRa(LoRaPacketParams {
-                        preamble_length: c.preamble_length,
-                        header_type: LoraPacketHeaderType::Variable,
-                        payload_length: 0,
-                        crc_enable: c.crc_enabled,
-                        iq_inversion_enable: c.invert_iq,
-                    }),
-                })
-                .await?;
+    radio
+        .execute_command_async(SetPacketParams {
+            params: config.packet_params,
+        })
+        .await?;
 
-            // 0 = validate reception starting from the first detected symbol.
-            radio
-                .execute_command_async(SetLoRaSymbNumTimeout {
-                    config: LoRaSymbNumTimeout { symb_num: 0 },
-                })
-                .await?;
-        }
+    // 0 = validate reception starting from the first detected symbol.
+    radio
+        .execute_command_async(SetLoRaSymbNumTimeout {
+            config: LoRaSymbNumTimeout { symb_num: 0 },
+        })
+        .await?;
 
-        PhyConfig::Gfsk(c) => {
-            radio
-                .execute_command_async(SetPacketType {
-                    packet_type: PacketType::Gfsk,
-                })
-                .await?;
-
-            radio
-                .execute_command_async(SetRfFrequency {
-                    config: RfFrequencyConfig {
-                        frequency: config.common.frequency_hz,
-                    },
-                })
-                .await?;
-
-            radio
-                .execute_command_async(SetModulationParams {
-                    params: ModulationParams::Gfsk(GfskModParams {
-                        bit_rate: c.bit_rate,
-                        pulse_shape: c.pulse_shape,
-                        bandwidth: c.bandwidth,
-                        freq_deviation: c.freq_deviation,
-                    }),
-                })
-                .await?;
-
-            radio
-                .execute_command_async(SetPacketParams {
-                    params: PacketParams::GFSK(GFSKPacketParams {
-                        preamble_length: c.preamble_length,
-                        preamble_detector_length: PreambleDetectorLength::Off,
-                        sync_word_length: c.sync_word_length,
-                        address_filtering: AddressFiltering::Disable,
-                        packet_type: GFSKPacketHeaderType::Variable,
-                        payload_length: 0,
-                        crc_type: CrcType::CrcOff,
-                        whitening_enable: true,
-                    }),
-                })
-                .await?;
-        }
-    }
-
-    // PA config for the SX1262 (high-power variant, up to +22dBm). If you're
-    // on an SX1261 board, switch device_sel and drop hp_max/duty_cycle per
-    // the datasheet's PA optimal-settings table (13-21).
     radio
         .execute_command_async(SetPaConfig {
             config: PaConfig {
@@ -335,7 +208,7 @@ async fn set_radio_params(
     radio
         .execute_command_async(SetTxParams {
             params: TxParams {
-                power: config.common.tx_power_dbm,
+                power: 14,
                 ramp_time: RampTime::Micros200,
             },
         })
@@ -399,7 +272,7 @@ async fn drive_radio<'a, Spi: SpiDevice, Dio1: embedded_hal_async::digital::Wait
                     .read_buffer_async(status.buffer_status.buffer_pointer, &mut rx_buf[..len])
                     .await?;
 
-                info!("Received {} bytes: {:02x?}", len, &rx_buf[..len]);
+                info!("Received {} bytes", len);
             }
         };
     }

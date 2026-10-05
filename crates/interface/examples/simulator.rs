@@ -1,16 +1,16 @@
 use buoyant::app::Harness as _;
-use buoyant::event::{self, Event, Key};
+use buoyant::event::{Event, Key};
 use buoyant::render_target::{EmbeddedGraphicsRenderTarget, RenderTarget as _};
 use embedded_graphics::{pixelcolor::BinaryColor, prelude::*};
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window, sdl2::Keycode,
 };
 
+use std::fmt::Write;
 use std::thread;
 use std::time::{Duration, Instant};
 
 // Import your shared UI library
-use interface::event::{InterfaceEvent, NavigateEvent};
 use interface::{State, view};
 
 fn main() -> Result<(), core::convert::Infallible> {
@@ -26,9 +26,19 @@ fn main() -> Result<(), core::convert::Infallible> {
     let size = display.size().into();
     let mut app = buoyant::app::App::new(State::default(), size, view);
     let mut s = app.state_mut();
-    s.poi.id.insert_str(0, "VK2GTX").unwrap();
-    s.poi.latitude = 33.123123;
-    s.poi.longitude = -151.456456;
+    let mut poi = interface::TrackedPOI::default();
+    poi.id.insert_str(0, "VK2GTX").unwrap();
+    poi.coordinate.latitude = 33.123123;
+    poi.coordinate.longitude = -151.456456;
+    s.poi_id = poi.id.clone();
+    s.visible_pois.push(poi.clone()).unwrap();
+    poi.id.clear();
+    poi.id.write_str("ID_GROUND").unwrap();
+    poi.coordinate.latitude = 33.456456;
+    s.visible_pois.push(poi.clone()).unwrap();
+    s.visible_pois.push(poi.clone()).unwrap();
+    s.visible_pois.push(poi.clone()).unwrap();
+    s.visible_pois.push(poi.clone()).unwrap();
 
     let mut target = EmbeddedGraphicsRenderTarget::new_hinted(&mut display, BinaryColor::On);
 

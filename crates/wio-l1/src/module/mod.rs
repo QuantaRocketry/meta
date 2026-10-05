@@ -1,17 +1,8 @@
-pub mod battery;
 pub mod blink;
+pub mod buzzer;
+pub mod compass;
 pub mod gnss;
+pub mod joystick;
+pub mod oled;
 // pub mod radio;
 pub mod usb;
-
-#[cfg(feature = "has-buzzer")]
-pub mod buzzer;
-
-#[cfg(feature = "has-oled")]
-pub mod oled;
-
-#[cfg(feature = "has-joystick")]
-pub mod joystick;
-
-#[cfg(feature = "has-compass")]
-pub mod compass;

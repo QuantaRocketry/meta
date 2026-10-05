@@ -26,6 +26,7 @@ impl SlaveAddress {
 
 /// Everything that can go wrong talking to the sensor.
 #[derive(Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Error<E> {
     /// The underlying I2C bus returned an error.
     Bus(E),

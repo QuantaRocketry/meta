@@ -165,7 +165,7 @@ pub async fn runner(spawner: Spawner, r: UsbResources) {
     );
 
     static SERIAL_STRING: StaticCell<heapless::string::String<17>> = StaticCell::new();
-    let mac = crate::get_mac_addr();
+    let mac = crate::device::hardware::get_mac_addr();
     let bytes = mac.to_be_bytes(); // [u8; 8], big-endian
 
     let serial_string = SERIAL_STRING.init(
