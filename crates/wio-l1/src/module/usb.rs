@@ -1,17 +1,25 @@
-use crate::{device::hardware::Irqs, device::hardware::UsbResources, info, terminal::AtCommand};
-use at_commands::parser::CommandParser;
+use crate::{
+    device::hardware::Irqs, device::hardware::UsbResources, info, system::SystemState, warn,
+};
+use common::module::battery::BatteryState;
 use core::fmt::Write;
 use embassy_executor::Spawner;
+use embassy_futures::{join, select};
 use embassy_nrf::usb;
+use embassy_sync::watch::DynReceiver;
+use embassy_time::{Duration, Instant, Ticker, Timer};
 use embassy_usb::{
     Builder, UsbDevice,
     class::cdc_acm::{self, CdcAcmClass},
     driver::{Driver, EndpointError},
 };
 use heapless::{String, format};
+use qcp::{Message, MessageKind};
 use static_cell::StaticCell;
 
 type UsbDriver = usb::Driver<'static, usb::vbus_detect::HardwareVbusDetect>;
+
+type BatteryWatcher = DynReceiver<'static, BatteryState>;
 
 pub struct Disconnected {}
 
@@ -44,99 +52,147 @@ async fn echo_task(mut class: CdcAcmClass<'static, UsbDriver>) {
     }
 }
 
-fn format_freq(freq_hz: u32) -> String<32> {
-    let mut s = String::new();
-    let _ = write!(s, "+FREQ: {}\r\n", freq_hz);
-    s
+/// Write `data` to the host, splitting it into USB packets.
+async fn write_all<'d, D: Driver<'d>>(
+    class: &mut CdcAcmClass<'d, D>,
+    data: &[u8],
+) -> Result<(), Disconnected> {
+    for chunk in data.chunks(class.max_packet_size() as usize) {
+        class.write_packet(chunk).await?;
+    }
+    Ok(())
 }
 
-async fn handle_command<'d, D: embassy_usb::driver::Driver<'d>>(
+/// Build the reply for a decoded QCP message, if there is one.
+fn qcp_reply(message: Message, battery: &mut BatteryWatcher) -> Option<Message> {
+    match message {
+        Message::Request(MessageKind::Uptime) => Some(Message::Uptime(Instant::now().as_micros())),
+        Message::Request(MessageKind::Battery) => battery.try_get().map(Message::Battery),
+        other => {
+            info!("QCP: unhandled message {}", other_kind(&other));
+            None
+        }
+    }
+}
+
+fn other_kind(message: &Message) -> &'static str {
+    match message {
+        Message::Request(_) => "Request",
+        Message::Uptime(_) => "Uptime",
+        Message::TrackedPOI(_) => "TrackedPOI",
+        Message::RadioConfig(_) => "RadioConfig",
+        Message::Protocol(_) => "Protocol",
+        Message::Battery(_) => "Battery",
+    }
+}
+
+/// Reassembles zero-terminated COBS frames from a byte stream and decodes
+/// them into messages.
+struct FrameDecoder {
+    // Room for the largest message plus COBS overhead and the delimiter.
+    buf: [u8; qcp::MESSAGE_SIZE_MAX + 4],
+    len: usize,
+    overflowed: bool,
+}
+
+impl FrameDecoder {
+    const fn new() -> Self {
+        Self {
+            buf: [0; qcp::MESSAGE_SIZE_MAX + 4],
+            len: 0,
+            overflowed: false,
+        }
+    }
+
+    /// Feed one byte, returning a message once a complete frame decodes.
+    fn push(&mut self, byte: u8) -> Option<Message> {
+        if byte != 0 {
+            if self.len < self.buf.len() {
+                self.buf[self.len] = byte;
+                self.len += 1;
+            } else {
+                self.overflowed = true;
+            }
+            return None;
+        }
+
+        let len = core::mem::take(&mut self.len);
+        if core::mem::take(&mut self.overflowed) || len == 0 {
+            return None;
+        }
+
+        match postcard::from_bytes_cobs::<Message>(&mut self.buf[..len]) {
+            Ok(message) => Some(message),
+            Err(_) => {
+                info!("QCP: failed to decode frame");
+                None
+            }
+        }
+    }
+}
+
+/// Encode `message` as a COBS frame and write it to the host.
+async fn send_message<'d, D: Driver<'d>>(
     class: &mut CdcAcmClass<'d, D>,
-    line: &[u8],
-) {
-    if CommandParser::parse(line)
-        .expect_identifier(b"AT?")
-        .finish()
-        .is_ok()
-    {
-        info!("CLI: AT?");
-
-        let _ = class.write_packet(b"+OK\r\n").await;
-        return;
+    message: &Message,
+) -> Result<(), Disconnected> {
+    let mut out = [0u8; qcp::MESSAGE_SIZE_MAX + 4];
+    match postcard::to_slice_cobs(message, &mut out) {
+        Ok(encoded) => write_all(class, encoded).await,
+        Err(_) => {
+            info!("QCP: failed to encode message");
+            Ok(())
+        }
     }
+}
 
-    if CommandParser::parse(line)
-        .expect_identifier(b"AT+FREQ?")
-        .finish()
-        .is_ok()
-    {
-        info!("CLI: AT+FREQ?");
+/// Serve QCP over the CDC-ACM port. Requests from the host are answered as
+/// they arrive, and the battery state is pushed whenever it changes, at most
+/// once per second.
+async fn qcp_serve<'d, D: Driver<'d>>(
+    class: &mut CdcAcmClass<'d, D>,
+    battery: &mut BatteryWatcher,
+) -> Result<(), Disconnected> {
+    let mut decoder = FrameDecoder::new();
+    let mut battery_ticker = Ticker::every(Duration::from_hz(1));
 
-        let resp = format_freq(0);
-        let _ = class.write_packet(resp.as_bytes()).await;
-        return;
+    loop {
+        let mut chunk = [0u8; 64];
+        match select::select(
+            class.read_packet(&mut chunk),
+            join::join(battery.changed(), battery_ticker.next()),
+        )
+        .await
+        {
+            select::Either::First(n) => {
+                for &b in &chunk[..n?] {
+                    let Some(message) = decoder.push(b) else {
+                        continue;
+                    };
+                    if let Some(reply) = qcp_reply(message, battery) {
+                        send_message(class, &reply).await?;
+                    }
+                }
+            }
+            select::Either::Second((state, ())) => {
+                send_message(class, &Message::Battery(state)).await?;
+            }
+        }
     }
-
-    if let Ok((hz,)) = CommandParser::parse(line)
-        .expect_identifier(b"AT+FREQ=")
-        .expect_int_parameter()
-        .finish()
-    {
-        info!("CLI: AT+FREQ={}", &hz);
-
-        // radio.set_freq_hz(hz as u32); // your radio driver call
-        let _ = class.write_packet(b"+OK\r\n").await;
-        return;
-    }
-
-    let _ = class.write_packet(b"ERROR\r\n").await;
 }
 
 #[embassy_executor::task]
-async fn cli_task(mut class: CdcAcmClass<'static, UsbDriver>) {
-    info!("CLI task started");
+async fn qcp_task(mut class: CdcAcmClass<'static, UsbDriver>, state: &'static SystemState) {
+    info!("QCP task started");
 
-    let mut cmd_buf = [0u8; 64];
-    let mut cmd_len = 0usize;
+    let Some(mut battery) = state.try_get_battery_state_watcher() else {
+        warn!("QCP task ran out of battery watchers");
+        return;
+    };
 
     loop {
         class.wait_connection().await;
-        loop {
-            let mut chunk = [0u8; 64];
-            let n = match class.read_packet(&mut chunk).await {
-                Ok(n) => n,
-                Err(_) => break,
-            };
-            for &b in &chunk[..n] {
-                if b == b'\n' {
-                    if let Some(cmd) = crate::terminal::handle_command(&cmd_buf[..cmd_len]) {
-                        match cmd {
-                            AtCommand::Ping => {
-                                let _ = class.write_packet(b"+OK\r\n").await;
-                            }
-                            AtCommand::GetFrequency => {
-                                let _ = class.write_packet(b"+Frequency=0\r\n").await;
-                            }
-                            AtCommand::SetFrequency(_hz) => {
-                                let _ = class.write_packet(b"+OK\r\n").await;
-                            }
-                            AtCommand::GetSF => {
-                                let _ = class.write_packet(b"+Frequency=0\r\n").await;
-                            }
-                            AtCommand::SetSF(_) => {
-                                let _ = class.write_packet(b"+OK\r\n").await;
-                            }
-                        }
-                    } else {
-                        info!("NONE");
-                    };
-                    cmd_len = 0;
-                } else if b != b'\r' && cmd_len < cmd_buf.len() {
-                    cmd_buf[cmd_len] = b;
-                    cmd_len += 1;
-                }
-            }
-        }
+        let _ = qcp_serve(&mut class, &mut battery).await;
     }
 }
 
@@ -157,7 +213,7 @@ async fn logger_task(class: CdcAcmClass<'static, UsbDriver>) {
 }
 
 #[embassy_executor::task]
-pub async fn runner(spawner: Spawner, r: UsbResources) {
+pub async fn runner(spawner: Spawner, r: UsbResources, state: &'static SystemState) {
     let driver = usb::Driver::new(
         r.usbd,
         Irqs,
@@ -198,8 +254,8 @@ pub async fn runner(spawner: Spawner, r: UsbResources) {
 
     // Create classes on the builder.
     static STATE: StaticCell<cdc_acm::State> = StaticCell::new();
-    let state = STATE.init(cdc_acm::State::new());
-    let class = CdcAcmClass::new(&mut builder, state, 64);
+    let cdc_state = STATE.init(cdc_acm::State::new());
+    let class = CdcAcmClass::new(&mut builder, cdc_state, 64);
 
     // Start the log hook if not defmt
     #[cfg(not(feature = "defmt"))]
@@ -210,7 +266,7 @@ pub async fn runner(spawner: Spawner, r: UsbResources) {
         spawner.spawn(logger_task(logging_class).unwrap());
     }
 
-    spawner.spawn(cli_task(class).unwrap());
+    spawner.spawn(qcp_task(class, state).unwrap());
     // spawner.spawn(echo_task(class).unwrap());
 
     // Build the builder.

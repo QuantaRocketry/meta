@@ -1,7 +1,7 @@
 use cortex_m::prelude::_embedded_hal_digital_OutputPin;
 use defmt::*;
 use embassy_executor::{SpawnError, Spawner};
-use embassy_futures::select::{select, Either};
+use embassy_futures::select::{Either, select};
 use embassy_rp::{
     gpio::{AnyPin, Output},
     pio::Pio,
@@ -63,4 +63,3 @@ impl<P: StatefulOutputPin> LEDIndicator<P> {
         self.notifier.signal(state);
     }
 }
-

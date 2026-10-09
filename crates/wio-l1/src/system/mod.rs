@@ -25,7 +25,7 @@ pub type Mutex = ThreadModeRawMutex;
 
 pub struct SystemState {
     gnss_config: Watch<Mutex, gnss::GnssState, 2>,
-    battery: Watch<Mutex, BatteryState, 1>,
+    battery: Watch<Mutex, BatteryState, 2>,
     pub config: &'static SystemConfig,
 
     #[cfg(feature = "has-compass")]

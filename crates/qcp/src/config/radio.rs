@@ -157,3 +157,48 @@ impl Default for RadioConfig {
 pub struct RadioSettings {
     pub protocol: Protocol,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::assert_round_trip;
+
+    #[test]
+    fn radio_config_lora_round_trip() {
+        assert_round_trip(
+            &RadioConfig {
+                frequency_hz: 915_735_000,
+                tx_power_dbm: 10,
+                phy: PhyConfig::Lora(LoraConfig {
+                    spreading_factor: SpreadingFactor::SF7,
+                    bandwidth: LoraBandwidth::Bw125,
+                    coding_rate: CodingRate::Cr45,
+                    low_data_rate_opt: false,
+                    preamble_length: 8,
+                    crc_enabled: true,
+                    invert_iq: false,
+                }),
+            }
+            .into(),
+        );
+    }
+
+    #[test]
+    fn radio_config_gfsk_round_trip() {
+        assert_round_trip(
+            &RadioConfig {
+                frequency_hz: 433_000_000,
+                tx_power_dbm: 10,
+                phy: PhyConfig::Gfsk(GfskConfig {
+                    bit_rate: 9600,
+                    freq_deviation: 5000,
+                    pulse_shape: GfskPulseShape::Bt05,
+                    bandwidth: GfskBandwidth::Bw117,
+                    preamble_length: 16,
+                    sync_word_length: 4,
+                }),
+            }
+            .into(),
+        );
+    }
+}

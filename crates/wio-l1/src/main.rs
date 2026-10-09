@@ -40,7 +40,6 @@ mod device;
 mod log_style;
 mod module;
 mod system;
-mod terminal;
 
 #[cfg(feature = "defmt")]
 use panic_probe as _;
@@ -56,8 +55,6 @@ use device::hardware::*;
 use embedded_alloc::LlffHeap as Heap;
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
-
-
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -98,7 +95,7 @@ async fn main(spawner: Spawner) {
         .init_storage(system::ConfigStorage::new(flash))
         .await;
 
-    spawner.spawn(module::usb::runner(spawner, r.usb).unwrap());
+    spawner.spawn(module::usb::runner(spawner, r.usb, SYSTEM_STATE.get()).unwrap());
     spawner.spawn(module::blink::runner(spawner, r.led).unwrap());
     // spawner.spawn(module::gnss::runner(spawner, r.gnss, SYSTEM_STATE.get()).unwrap());
     spawner.spawn(battery_runner(r.battery, SYSTEM_STATE.get().battery_sender()).unwrap());

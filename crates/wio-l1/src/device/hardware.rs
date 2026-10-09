@@ -100,6 +100,8 @@ impl BatteryHardware {
     const BATTERY_VREF_MV: i32 = 3600; // 0.6V ref × gain factor of 6, in millivolts
     const BATTERY_ADC_MAX: i32 = 1 << 12; // 2^12
     const BATTERY_DIVIDER: i32 = 2;
+    const BATTERY_LOW_MV: i32 = 3400;
+    const BATTERY_HIGH_MV: i32 = 4200;
 
     pub async fn from_resources(r: BatteryResources) -> Self {
         // pull ctrl pin high to enable BMS
@@ -123,7 +125,7 @@ impl BatteryHardware {
 }
 
 impl common::module::battery::Battery for BatteryHardware {
-    async fn sample_mv(&mut self) -> u16 {
+    async fn sample(&mut self) -> f32 {
         let mut buf = [0i16; 1];
         self.saadc.sample(&mut buf).await;
 
@@ -133,6 +135,14 @@ impl common::module::battery::Battery for BatteryHardware {
         let v_pin_mv = (sample * Self::BATTERY_VREF_MV) / Self::BATTERY_ADC_MAX;
 
         // Multiply by divider ratio to get actual battery voltage
-        (v_pin_mv * Self::BATTERY_DIVIDER) as u16
+        let v_bat_mv = v_pin_mv * Self::BATTERY_DIVIDER;
+
+        ((v_bat_mv - Self::BATTERY_LOW_MV) as f32
+            / (Self::BATTERY_HIGH_MV - Self::BATTERY_LOW_MV) as f32)
+            .clamp(0.0, 1.0)
+    }
+
+    async fn charge_status(&mut self) -> qcp::ChargeStatus {
+        qcp::ChargeStatus::Full
     }
 }

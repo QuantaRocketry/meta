@@ -1,8 +1,5 @@
 use embassy_futures::select::*;
-use embassy_sync::{
-    blocking_mutex::raw::RawMutex,
-    zerocopy_channel::Receiver,
-};
+use embassy_sync::{blocking_mutex::raw::RawMutex, zerocopy_channel::Receiver};
 use embassy_time::Timer;
 use embedded_hal_async::spi::SpiDevice;
 use qcp::RadioSettings;

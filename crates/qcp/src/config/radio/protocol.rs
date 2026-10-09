@@ -12,3 +12,14 @@ pub enum Protocol {
     Eggtimer(eggtimer::Protocol),
     Uts,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::assert_round_trip;
+
+    #[test]
+    fn protocol_round_trip() {
+        assert_round_trip(&Protocol::Eggtimer(eggtimer::Protocol::default()).into());
+    }
+}

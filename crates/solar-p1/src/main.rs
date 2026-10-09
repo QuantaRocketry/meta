@@ -40,8 +40,6 @@ fn panic(_info: &PanicInfo) -> ! {
     cortex_m::peripheral::SCB::sys_reset();
 }
 
-
-
 use device::hardware::*;
 
 use embedded_alloc::LlffHeap as Heap;

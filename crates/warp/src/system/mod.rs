@@ -14,10 +14,7 @@ pub mod state_machine;
 use crate::system;
 use crate::system::indicator::LEDIndicator;
 use crate::system::state_machine::StateMachine;
-use crate::{
-    resources::AssignedResources,
-    system::{indicator::IndicatorTrait},
-};
+use crate::{resources::AssignedResources, system::indicator::IndicatorTrait};
 
 #[derive(Copy, Clone, Format)]
 pub enum Error {

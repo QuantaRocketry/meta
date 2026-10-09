@@ -110,14 +110,7 @@ pub async fn runner(
             }
 
             if let Some(b_state) = battery_watcher.try_changed() {
-                const BATTERY_LOW_MV: u16 = 3400;
-                const BATTERY_HIGH_MV: u16 = 4200;
-                let mv = b_state.voltage_mv as f32;
-
-                let percent = ((mv - BATTERY_LOW_MV as f32)
-                    / (BATTERY_HIGH_MV - BATTERY_LOW_MV) as f32)
-                    .clamp(0.0, 1.0);
-                app.state_mut().battery_percentage = percent;
+                app.state_mut().battery_percentage = b_state.percent as f32 / 100.0;
             }
 
             if let Some(gnss_state) = gnss_watcher.try_changed() {

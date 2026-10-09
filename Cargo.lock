@@ -4038,7 +4038,6 @@ name = "wio-l1"
 version = "0.1.0"
 dependencies = [
  "assign-resources",
- "at-commands",
  "buoyant 0.7.1",
  "common",
  "cortex-m",

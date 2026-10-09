@@ -1,8 +1,8 @@
 use assign_resources::assign_resources;
 use embassy_rp::{
-    bind_interrupts,
+    Peri, bind_interrupts,
     peripherals::{self, PIO0, PIO1, USB},
-    pio, usb, Peri,
+    pio, usb,
 };
 
 assign_resources! {
