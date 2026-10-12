@@ -13,6 +13,7 @@ pub struct SerialData {
     pub settings: settings::SerialSettings,
     pub content: Vec<String>,
     pub connected_port: Option<Box<dyn serialport::SerialPort>>,
+    pub reconnect_port: Option<String>,
 }
 
 #[tauri::command]
@@ -44,10 +45,12 @@ fn open_port(
 pub async fn set_port(port: &str, state: tauri::State<'_, AppData>) -> Result<String, String> {
     let mut serial = state.serial.lock().unwrap();
     serial.connected_port = None;
+    serial.reconnect_port = None;
     match open_port(port, &serial.settings) {
         Ok(p) => {
             let name = p.name().unwrap_or("Unknown".to_string());
             serial.connected_port = Some(p);
+            serial.reconnect_port = Some(port.to_string());
             Ok(name)
         }
         Err(err) => Err(format!("Failed to connect to {}\n{}", port, err)),
@@ -133,6 +136,26 @@ pub async fn clear_serial_content(state: tauri::State<'_, AppData>) -> Result<()
     return Ok(());
 }
 
+/// Attempt to reopen the last used port if the device is plugged back in
+fn try_reconnect(handle: &tauri::AppHandle, serial: &mut SerialData) {
+    let Some(name) = serial.reconnect_port.clone() else {
+        return;
+    };
+    let present = serialport::available_ports()
+        .map(|ports| ports.iter().any(|p| p.port_name == name))
+        .unwrap_or(false);
+    if !present {
+        return;
+    }
+    match open_port(&name, &serial.settings) {
+        Ok(p) => {
+            serial.connected_port = Some(p);
+            let _ = handle.emit("serial_reconnected", name);
+        }
+        Err(e) => eprintln!("Reconnect to {} failed: {}", name, e),
+    }
+}
+
 /// The handler for the currently selected protocol, tagged so we can tell
 /// when the selection changes.
 type ActiveHandler = (settings::Protocol, Box<dyn ProtocolHandler>);
@@ -151,6 +174,7 @@ pub async fn terminal(handle: &tauri::AppHandle) -> Result<(), String> {
             .map(|p| p.try_clone().expect("Failed to obtain clone"))
         else {
             active = None; // drop decoder state while disconnected
+            try_reconnect(handle, &mut serial);
             continue;
         };
 
@@ -175,7 +199,9 @@ pub async fn terminal(handle: &tauri::AppHandle) -> Result<(), String> {
             }
             Err(e) => match e.kind() {
                 io::ErrorKind::TimedOut => {} // expected
-                io::ErrorKind::BrokenPipe => {
+                io::ErrorKind::BrokenPipe
+                | io::ErrorKind::NotConnected
+                | io::ErrorKind::UnexpectedEof => {
                     serial.connected_port = None;
                     let _ = handle.emit("serial_disconnected", ());
                     eprintln!("Port disconnected");
