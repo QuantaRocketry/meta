@@ -1,0 +1,9 @@
+[package]
+name = "sx1276"
+version = "0.1.0"
+edition = "2024"
+description = "no_std driver for the Semtech SX1276/RFM95 radio in FSK/OOK packet mode, built with the `device-driver` crate"
+
+[dependencies]
+device-driver = { version = "1.0", default-features = false, features = ["dsl"] }
+embedded-hal = { workspace = true }

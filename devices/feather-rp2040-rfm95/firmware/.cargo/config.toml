@@ -1,0 +1,9 @@
+[build]
+target = "thumbv6m-none-eabi"
+
+[target.thumbv6m-none-eabi]
+# Profiles in workspace members are ignored by cargo, so optimise for size here.
+rustflags = ["-C", "opt-level=s"]
+# `cargo run` converts the ELF to a UF2 next to it (target/.../<name>.uf2).
+# Hold BOOT while pressing RESET, then copy that file to the RPI-RP2 drive.
+runner = ["sh", "-c", "elf2flash -v off convert -b rp2040 \"$1\" \"$1.uf2\" && echo \"UF2 written: $1.uf2\"", "--"]

@@ -10,7 +10,10 @@ members = [
     "devices/wio-l1/firmware",
     "devices/solar-p1/firmware",
     "devices/warp/firmware",
+    "devices/feather-rp2040-rfm95/firmware",
+    "libs/sx1276",
 ]
+default-members = ["libs/qcp"]
 exclude = ["libs/mock-embedded-io", "devices/entangler/firmware", "apps/singularity/src-tauri"]
 
 [workspace.dependencies]
