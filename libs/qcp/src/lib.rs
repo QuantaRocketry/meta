@@ -6,8 +6,9 @@ mod message;
 mod state;
 
 pub use config::radio::{
-    CodingRate, GfskBandwidth, GfskConfig, GfskPulseShape, LoraBandwidth, LoraConfig, PhyConfig,
-    Protocol, RadioConfig, RadioSettings, SpreadingFactor,
+    CodingRate, DataCoding, GfskConfig, GfskCrc, GfskPulseShape, LoraBandwidth, LoraConfig,
+    LoraHeader, PacketLength, PhyConfig, PreamblePattern, Protocol, RadioConfig, RadioSettings,
+    SpreadingFactor, SyncWord,
 };
 pub use coordinate::Coordinate;
 pub use message::{Message, MessageKind};

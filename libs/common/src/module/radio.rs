@@ -9,6 +9,8 @@ use sx1262::{self, Error::SerializationError, *};
 use crate::config::ConfigItem;
 use crate::{error, info};
 
+mod sx1262;
+
 pub const RADIO_BUFFER_SIZE: usize = 127;
 pub const RADIO_TX_CHANNEL_LENGTH: usize = 2;
 pub type RadioBuffer = heapless::vec::Vec<u8, RADIO_BUFFER_SIZE>;
