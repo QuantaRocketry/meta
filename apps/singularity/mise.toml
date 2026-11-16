@@ -1,7 +1,5 @@
 [tools]
-just = "latest"
-node = "latest"
+node = "lts"
 pnpm = "latest"
 pre-commit = "latest"
 prettier = "latest"
-rust = "latest"

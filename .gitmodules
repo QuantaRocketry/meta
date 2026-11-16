@@ -1,9 +1,9 @@
-[submodule "hardware/entangler/Library/RP2350"]
-	path = hardware/entangler/Library/RP2350
+[submodule "devices/entangler/hardware/Library/RP2350"]
+	path = devices/entangler/hardware/Library/RP2350
 	url = https://github.com/HDR/RP2350_KiCad.git
 [submodule "crates/mock-embedded-io"]
-	path = crates/mock-embedded-io
+	path = libs/mock-embedded-io
 	url = git@github.com:Gibson431/mock-embedded-io.git
 [submodule "singularity/src-tauri/protocols/uts-odin-protocol"]
-	path = singularity/src-tauri/protocols/uts-odin-protocol
+	path = apps/singularity/src-tauri/protocols/uts-odin-protocol
 	url = git@github.com:Gibson431/uts-odin-protocol.git

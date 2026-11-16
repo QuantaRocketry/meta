@@ -1,16 +1,17 @@
 [workspace]
 resolver = "3"
 members = [
-    "crates/common",
-    "crates/nmea-stream",
-    "crates/lis3mdl",
-    "crates/lsm6ds3",
-    "crates/qcp",
-    "crates/wio-l1",
-    "crates/solar-p1",
-    "crates/warp",
+    "libs/common",
+    "libs/nmea-stream",
+    "libs/lis3mdl",
+    "libs/lsm6ds3",
+    "libs/qcp",
+    "libs/interface",
+    "devices/wio-l1/firmware",
+    "devices/solar-p1/firmware",
+    "devices/warp/firmware",
 ]
-exclude = ["crates/mock-embedded-io", "singularity/src-tauri"]
+exclude = ["libs/mock-embedded-io", "devices/entangler/firmware", "apps/singularity/src-tauri"]
 
 [workspace.dependencies]
 assign-resources = "0.5.0"

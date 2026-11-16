@@ -1,0 +1,6 @@
+[tools]
+rust = "stable"
+just = "latest"
+"cargo:probe-rs-tools" = "latest"
+"cargo:elf2flash" = "latest"
+"cargo:espflash" = "latest"

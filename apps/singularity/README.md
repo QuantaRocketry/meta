@@ -6,11 +6,7 @@ A device manager designed for interacting with Quanta Rocketry's systems (and an
 
 ## Usage
 
-This project uses a mix of a Nix flake and justfile.
-
-```sh
-nix develop
-```
+This project uses a justfile.
 
 ```sh
 just install

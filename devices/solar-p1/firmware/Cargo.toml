@@ -64,7 +64,7 @@ u8g2-fonts = { version = "0.7.1", features = ["embedded_graphics_textstyle"] }
 
 
 [dependencies.nmea-stream]
-path = "../nmea-stream"
+path = "../../../libs/nmea-stream"
 features = [
     "GGA",
     "RMC",
@@ -73,13 +73,13 @@ features = [
 ]
 
 [dependencies.interface]
-path = "../interface"
+path = "../../../libs/interface"
 
 [dependencies.lis3mdl]
-path = "../lis3mdl"
+path = "../../../libs/lis3mdl"
 
 [dependencies.lsm6ds3]
-path = "../lsm6ds3"
+path = "../../../libs/lsm6ds3"
 
 
 [features]

@@ -31,6 +31,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -43,6 +45,7 @@ jobs:
         with:
           node-version: lts/*
           cache: 'pnpm'
+          cache-dependency-path: apps/singularity/pnpm-lock.yaml
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -59,7 +62,8 @@ jobs:
         # You can remove the one that doesn't apply to your app to speed up the workflow a bit.
 
       - name: install frontend dependencies
-        run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
+        run: pnpm install
+        working-directory: apps/singularity
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -70,6 +74,7 @@ jobs:
           # releaseBody: 'See the assets to download this version and install.'
           # releaseDraft: true
           # prerelease: true
+          projectPath: apps/singularity
           args: ${{ matrix.args }}
 
       - name: Upload Artifact (win + linux)
@@ -77,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}-build
-          path: src-tauri/target/release/bundle/
+          path: apps/singularity/src-tauri/target/release/bundle/
           retention-days: 5
 
       - name: Upload Artifact (mac)
@@ -85,5 +90,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}-build
-          path: src-tauri/target/*/release/bundle/
+          path: apps/singularity/src-tauri/target/*/release/bundle/
           retention-days: 5

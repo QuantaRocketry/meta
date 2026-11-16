@@ -66,7 +66,7 @@ usbd-hid = { workspace = true }
 
 
 [dependencies.nmea-stream]
-path = "../nmea-stream"
+path = "../../../libs/nmea-stream"
 features = [
     "GGA",
     "RMC",
@@ -75,19 +75,19 @@ features = [
 ]
 
 [dependencies.common]
-path = "../common"
+path = "../../../libs/common"
 
 [dependencies.qcp]
-path = "../qcp"
+path = "../../../libs/qcp"
 
 [dependencies.interface]
-path = "../interface"
+path = "../../../libs/interface"
 
 [dependencies.lis3mdl]
-path = "../lis3mdl"
+path = "../../../libs/lis3mdl"
 
 [dependencies.lsm6ds3]
-path = "../lsm6ds3"
+path = "../../../libs/lsm6ds3"
 
 [features]
 default = []

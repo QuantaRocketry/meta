@@ -1,7 +1,3 @@
-[tools]
-"cargo:elf2flash" = "latest"
-"cargo:probe-rs-tools" = "latest"
-
 [tasks.debug]
 description = "Debug the device using cargo-embed"
 run = "cargo embed --release"

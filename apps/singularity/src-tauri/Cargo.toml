@@ -34,4 +34,4 @@ postcard = { version = "1.1", default-features = false }
 path = "./protocols/uts-odin-protocol"
 
 [dependencies.qcp]
-path = "../../crates/qcp"
+path = "../../../libs/qcp"
