@@ -12,6 +12,8 @@
 mod ascii;
 mod qcp;
 
+pub use qcp::send_message;
+
 use serialport::SerialPort;
 use tauri::{AppHandle, Emitter};
 

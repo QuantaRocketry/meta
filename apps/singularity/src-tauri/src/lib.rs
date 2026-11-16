@@ -61,6 +61,7 @@ pub fn run() {
             serial::get_active_port,
             serial::get_serial_content,
             serial::send_serial_message,
+            serial::send_eggtimer_config,
             serial::clear_serial_content,
             serial::set_baud_rate,
             settings::app::get_cesium_ion_token,

@@ -1,3 +1,4 @@
+import { EggtimerRadioForm } from "@/components/forms/eggtimer-radio-form";
 import { SerialControlWidget } from "@/components/header-widgets/serial-control";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -123,6 +124,7 @@ export default function Configuration() {
       widgets={[<DeviceSelectorWidget />, <SerialControlWidget />]}
     >
       <Options />
+      <EggtimerRadioForm />
       <ButtonGroup
         style={{ position: "absolute", right: "1.25rem", bottom: "1.25rem" }}
       >
