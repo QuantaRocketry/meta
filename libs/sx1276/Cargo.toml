@@ -7,3 +7,8 @@ description = "no_std driver for the Semtech SX1276/RFM95 radio in FSK/OOK packe
 [dependencies]
 device-driver = { version = "1.0", default-features = false, features = ["dsl"] }
 embedded-hal = { workspace = true }
+qcp = { path = "../qcp", optional = true }
+
+[features]
+# `TryFrom<&qcp::RadioConfig>` for `Config`.
+qcp = ["dep:qcp"]

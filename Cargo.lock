@@ -1430,6 +1430,7 @@ dependencies = [
  "heapless 0.9.3",
  "panic-halt",
  "portable-atomic",
+ "qcp",
  "static_cell",
  "sx1276",
 ]
@@ -3394,6 +3395,7 @@ version = "0.1.0"
 dependencies = [
  "device-driver",
  "embedded-hal 1.0.0",
+ "qcp",
 ]
 
 [[package]]

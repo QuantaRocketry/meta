@@ -24,6 +24,8 @@
 
 pub mod lora;
 pub mod lora_registers;
+#[cfg(feature = "qcp")]
+pub mod qcp;
 pub mod registers;
 
 use device_driver::{BufferInterface, BufferInterfaceError, RegisterInterface};
@@ -120,7 +122,7 @@ impl<SPI: SpiDevice> BufferInterface for SpiInterface<SPI> {
 }
 
 /// RF/modem settings.
-pub struct Config {
+pub struct Config<'a> {
     /// Carrier frequency in Hz.
     pub frequency_hz: u32,
     /// Bit rate in bit/s.
@@ -131,7 +133,7 @@ pub struct Config {
     /// Must cover `bitrate + 2 * fdev` plus crystal error on both ends.
     pub rx_bw: (RxBwMantissa, u8),
     /// Sync word, 1..=8 bytes. The transmitter must use the same one.
-    pub sync_word: &'static [u8],
+    pub sync_word: &'a [u8],
     /// Preamble pattern: `true` = 0x55, `false` = 0xAA.
     pub preamble_is_0x55: bool,
     /// Use the hardware CRC (CCITT, init 0x1D0F). Leave off when the transmitter
@@ -191,7 +193,7 @@ impl<SPI: SpiDevice, RST: OutputPin> Sx1276<SPI, RST> {
 
     /// Hardware-reset the module, verify it answers and configure FSK mode.
     /// Leaves the radio in standby.
-    pub fn init(&mut self, delay: &mut impl DelayNs, cfg: &Config) -> Result<(), Error<SPI::Error>> {
+    pub fn init(&mut self, delay: &mut impl DelayNs, cfg: &Config<'_>) -> Result<(), Error<SPI::Error>> {
         // Reset: pull low >100 us, release, wait >=5 ms.
         self.rst.set_low().map_err(|_| Error::Pin)?;
         delay.delay_ms(1);
