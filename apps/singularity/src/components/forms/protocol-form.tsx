@@ -33,12 +33,6 @@ const CHANNELS: Record<Channel, string> = {
 
 const DEFAULT_CENTER_HZ = 921_000_000;
 
-/** Channel 0 sits 15 kHz below the centre; channel n is 235 kHz + (n - 1) * 250 kHz above it. */
-function channelOffsetHz(channel: Channel) {
-  const n = Number(CHANNELS[channel]);
-  return n === 0 ? -15_000 : 235_000 + (n - 1) * 250_000;
-}
-
 function nameOf(protocol: Protocol): ProtocolName {
   return typeof protocol === "string" ? protocol : "Eggtimer";
 }
@@ -138,14 +132,6 @@ export function ProtocolForm({
               }
             />
           </Field>
-          <p className="text-sm text-muted-foreground">
-            Carrier{" "}
-            {(
-              (eggtimer.center_frequency_hz + channelOffsetHz(eggtimer.channel)) /
-              1e6
-            ).toFixed(3)}{" "}
-            MHz
-          </p>
         </>
       )}
     </FieldGroup>

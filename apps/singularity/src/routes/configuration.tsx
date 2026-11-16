@@ -70,7 +70,7 @@ function Options() {
   const capabilities = Object.keys(deviceSettings.data) as CapabilityKey[];
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] items-start gap-4">
       {capabilities.map((capability) => (
         <CapabilityCard
           key={`${deviceSettings.type}-${capability}`}

@@ -176,7 +176,7 @@ function LoraFields() {
       />
       <NumberField name="lora.preambleLength" label="Preamble (symbols)" />
       <TextField name="lora.syncWord" label="Sync word (hex)" />
-      <FieldSeparator />
+      <FieldSeparator className="col-span-full" />
       <SwitchField name="lora.implicitHeader" label="Implicit header" />
       {implicit && (
         <NumberField name="lora.payloadLength" label="Payload length (bytes)" />
@@ -207,7 +207,7 @@ function GfskFields() {
       />
       <NumberField name="gfsk.preambleLength" label="Preamble (bytes)" />
       <TextField name="gfsk.syncWord" label="Sync word (hex bytes)" />
-      <FieldSeparator />
+      <FieldSeparator className="col-span-full" />
       <SwitchField name="gfsk.variableLength" label="Variable length" />
       {!variable && (
         <NumberField name="gfsk.fixedLength" label="Payload length (bytes)" />
@@ -257,14 +257,14 @@ export function RadioParametersForm({
   return (
     <FormProvider {...form}>
       <form onSubmit={(e) => e.preventDefault()}>
-        <FieldGroup className="w-full max-w-xs">
+        <FieldGroup className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-x-6 gap-y-4">
           <NumberField name="frequencyMhz" label="Frequency (MHz)" step={0.001} />
           <SelectField
             name="modulation"
             label="Modulation"
             options={MODULATIONS}
           />
-          <FieldSeparator />
+          <FieldSeparator className="col-span-full" />
           {modulation === "Lora" ? <LoraFields /> : <GfskFields />}
         </FieldGroup>
       </form>
