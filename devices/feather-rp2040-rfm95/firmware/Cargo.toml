@@ -18,4 +18,5 @@ heapless = { workspace = true }
 panic-halt = "1.0.0"
 portable-atomic = { workspace = true, features = ["critical-section"] }
 static_cell = { workspace = true }
-sx1276 = { path = "../../../libs/sx1276" }
+qcp = { path = "../../../libs/qcp" }
+sx1276 = { path = "../../../libs/sx1276", features = ["qcp"] }

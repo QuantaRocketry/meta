@@ -1,5 +1,8 @@
-//! Adafruit Feather RP2040 RFM95: receive FSK packets and print them as ASCII
-//! over USB CDC (a virtual serial port). Built on embassy.
+//! Adafruit Feather RP2040 RFM95: receive (G)FSK packets and pass them to the
+//! host over USB CDC as qcp `RawPayload` messages. The host chooses what to
+//! listen for by sending a qcp `Protocol` or `RadioConfig`; the feather retunes
+//! and acknowledges with the `RadioConfig` it applied, or answers `Error`.
+//! Built on embassy.
 //!
 //! Hardware (from the Adafruit Feather RP2040 RFM95 pinout):
 //!
@@ -13,12 +16,12 @@
 //! | RFM_DIO0     | 21   | PayloadReady        |
 //! | red LED (D13)| 13   | heartbeat           |
 //!
-//! Tasks: `radio_task` (init/retry, receive, status), `cdc_task` (feeds the USB
-//! serial port from a byte pipe), `usb_task` (USB device), `heartbeat_task` (LED).
+//! Tasks: `radio_task` (init/retry, receive, apply configs), `cdc_task` (qcp
+//! over the USB serial port), `usb_task` (USB device), `heartbeat_task` (LED).
 #![no_std]
 #![no_main]
 
-use core::fmt::Write as _;
+use core::cell::Cell;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use embassy_executor::Spawner;
@@ -28,72 +31,62 @@ use embassy_rp::gpio::{Input, Level, Output, Pull};
 use embassy_rp::peripherals::{SPI1, USB};
 use embassy_rp::spi::{self, Blocking, Spi};
 use embassy_rp::usb::{Driver, InterruptHandler};
+use embassy_sync::blocking_mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-use embassy_sync::pipe::Pipe;
-use embassy_time::{Delay, Duration, Timer};
+use embassy_sync::channel::Channel;
+use embassy_sync::signal::Signal;
+use embassy_time::{Delay, Instant, Timer};
 use embassy_usb::class::cdc_acm::{CdcAcmClass, State};
 use embassy_usb::{Builder, Config, UsbDevice};
 use embedded_hal_bus::spi::{ExclusiveDevice, NoDelay};
-use heapless::String;
 use panic_halt as _;
+use qcp::{ConfigError, FRAME_SIZE_MAX, FrameDecoder, Message, MessageKind, RadioConfig, RawPayload};
 use static_cell::StaticCell;
 
 bind_interrupts!(struct Irqs {
     USBCTRL_IRQ => InterruptHandler<USB>;
 });
 
-/// Centre frequency (Hz) and channel, as defined by eggtimer-decoder: the
-/// signal is at `CENTER_FREQ_HZ + channel offset` (channel 0 = -15 kHz,
-/// channel n >= 1 = 235 kHz + (n-1) * 250 kHz; only channel 0 has been measured).
-const CENTER_FREQ_HZ: i32 = 925_000_000;
-const CHANNEL: i32 = 4;
-const CHANNEL_OFFSET_HZ: i32 = if CHANNEL == 0 {
-    -15_000
-} else {
-    235_000 + (CHANNEL - 1) * 250_000
-};
-
-/// Radio settings: Eggtimer/Eggfinder TX (Si1000, 2-FSK, 9600 baud, +/-35 kHz,
-/// preamble 0x55 x5, sync 2D D4, length byte, payload, CRC-16/XMODEM).
-const RADIO: sx1276::Config = sx1276::Config {
-    frequency_hz: (CENTER_FREQ_HZ + CHANNEL_OFFSET_HZ) as u32, // 925.985 MHz
-    bitrate_bps: 9_600,
-    fdev_hz: 35_000,
-    // RxBw = 32 MHz / (16 * 2^(2+2)) = 125 kHz: covers 2*35 kHz + 9.6 kHz plus
-    // crystal/tuning error on both ends.
-    rx_bw: (sx1276::RxBwMantissa::M16, 2),
-    sync_word: &[0x2D, 0xD4],
-    preamble_is_0x55: true,
-    // The TX appends CRC-16/XMODEM (init 0, over len+payload), which the
-    // SX1276 hardware CRC (init 0x1D0F) cannot check, so it is off. The
-    // trailing 2 CRC bytes are not read; non-ASCII packets are dropped instead.
-    hw_crc: false,
-    // AGC on, so it can adapt to the (strong) signal on the preamble. To try a
-    // fixed gain instead set `agc_auto: false` and `lna_gain` 1 (max) to 6.
-    agc_auto: true,
-    lna_gain: 1,
-};
-
-/// How often the idle status line is printed.
-const STATUS_PERIOD: Duration = Duration::from_secs(2);
-
 type RadioDevice = ExclusiveDevice<Spi<'static, SPI1, Blocking>, Output<'static>, NoDelay>;
 type Radio = sx1276::Sx1276<RadioDevice, Output<'static>>;
 type UsbDriver = Driver<'static, USB>;
 
-/// Bytes waiting to be sent to the host. Written by `radio_task`, drained by `cdc_task`.
-static TX_PIPE: Pipe<CriticalSectionRawMutex, 2048> = Pipe::new();
+/// What the host asked the radio to receive: a protocol, or a raw waveform.
+/// The feather acknowledges with the same kind it was sent.
+#[derive(Clone, Copy)]
+enum Selection {
+    Protocol(qcp::Protocol),
+    Radio(RadioConfig),
+}
+
+impl Selection {
+    /// The waveform to tune to, or `None` for a protocol with none defined.
+    fn radio(self) -> Option<RadioConfig> {
+        match self {
+            Selection::Protocol(protocol) => protocol.radio_config(),
+            Selection::Radio(config) => Some(config),
+        }
+    }
+
+    fn message(self) -> Message {
+        match self {
+            Selection::Protocol(protocol) => Message::Protocol(protocol),
+            Selection::Radio(config) => Message::RadioConfig(config),
+        }
+    }
+}
+
+/// A selection from the host, already checked to be receivable. Written by
+/// `cdc_task`, taken by `radio_task`.
+static NEW_CONFIG: Signal<CriticalSectionRawMutex, Selection> = Signal::new();
+/// Messages for the host. Written by `radio_task`, drained by `cdc_task`.
+/// Writers never wait: a message is dropped if the host is not keeping up.
+static TO_HOST: Channel<CriticalSectionRawMutex, Message, 4> = Channel::new();
+/// What the radio is running, for `Request(Protocol)` and `Request(RadioConfig)`.
+static CURRENT: Mutex<CriticalSectionRawMutex, Cell<Option<Selection>>> =
+    Mutex::new(Cell::new(None));
 /// Whether the radio is initialised; the LED blinks faster while it is not.
 static RADIO_OK: AtomicBool = AtomicBool::new(false);
-
-/// Packet counters: `raw` = read from the radio, `printed` = sent to USB,
-/// `dropped` = rejected (non-ASCII/noise, or the pipe was full).
-#[derive(Default)]
-struct Stats {
-    raw: u32,
-    printed: u32,
-    dropped: u32,
-}
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -104,7 +97,7 @@ async fn main(spawner: Spawner) {
     let driver = Driver::new(p.USB, Irqs);
     let mut config = Config::new(0x16c0, 0x27dd);
     config.manufacturer = Some("quanta");
-    config.product = Some("Feather RFM95 FSK receiver");
+    config.product = Some("Feather RFM95 qcp receiver");
     config.serial_number = Some("0001");
     config.max_power = 100;
     config.max_packet_size_0 = 64;
@@ -151,25 +144,95 @@ async fn usb_task(mut usb: UsbDevice<'static, UsbDriver>) -> ! {
     usb.run().await
 }
 
-/// Copy bytes from `TX_PIPE` to the serial port while a host has it open.
+/// What a message from the host asks of the feather.
+enum Reply {
+    /// Send this to the host now.
+    Now(Message),
+    /// Nothing to say yet: `radio_task` answers once the config is applied.
+    Later,
+    None,
+}
+
+/// Act on one message from the host. Configs are checked here, so a config
+/// the radio cannot receive is refused before it disturbs the radio.
+fn handle(message: Message) -> Reply {
+    let selection = match message {
+        Message::Request(MessageKind::Uptime) => {
+            return Reply::Now(Message::Uptime(Instant::now().as_micros()));
+        }
+        Message::Request(MessageKind::Protocol) => {
+            return match CURRENT.lock(Cell::get) {
+                Some(selection @ Selection::Protocol(_)) => Reply::Now(selection.message()),
+                _ => Reply::None,
+            };
+        }
+        Message::Request(MessageKind::RadioConfig) => {
+            return match CURRENT.lock(Cell::get).and_then(Selection::radio) {
+                Some(config) => Reply::Now(Message::RadioConfig(config)),
+                None => Reply::None,
+            };
+        }
+        Message::RadioConfig(config) => Selection::Radio(config),
+        Message::Protocol(protocol) => Selection::Protocol(protocol),
+        _ => return Reply::None,
+    };
+    let checked = selection
+        .radio()
+        .ok_or(ConfigError::UnsupportedProtocol)
+        .and_then(|config| sx1276::Config::try_from(&config).map(|_| ()));
+    match checked {
+        Ok(()) => {
+            NEW_CONFIG.signal(selection);
+            Reply::Later
+        }
+        Err(e) => Reply::Now(Message::Error(e)),
+    }
+}
+
+/// Send `message` to the host as one frame, split into USB packets.
+async fn send(class: &mut CdcAcmClass<'static, UsbDriver>, message: &Message) -> Result<(), ()> {
+    let mut buf = [0u8; FRAME_SIZE_MAX];
+    let Ok(frame) = qcp::encode_frame(message, &mut buf) else { return Ok(()) };
+    let max_packet = class.max_packet_size() as usize;
+    for chunk in frame.chunks(max_packet) {
+        class.write_packet(chunk).await.map_err(|_| ())?;
+    }
+    // A transfer that is an exact multiple of the packet size needs a
+    // zero-length packet to tell the host it ended.
+    if frame.len() % max_packet == 0 {
+        class.write_packet(&[]).await.map_err(|_| ())?;
+    }
+    Ok(())
+}
+
+/// qcp over the serial port while a host has it open.
 #[embassy_executor::task]
 async fn cdc_task(mut class: CdcAcmClass<'static, UsbDriver>) -> ! {
-    let max_packet = class.max_packet_size() as usize;
-    let mut buf = [0u8; 64];
+    let mut decoder = FrameDecoder::new();
     loop {
         class.wait_connection().await;
         // Nobody was listening: do not replay stale backlog.
-        TX_PIPE.clear();
-        loop {
-            let n = TX_PIPE.read(&mut buf).await;
-            if class.write_packet(&buf[..n]).await.is_err() {
-                break; // host went away
+        TO_HOST.clear();
+        let _ = serve(&mut class, &mut decoder).await;
+    }
+}
+
+async fn serve(
+    class: &mut CdcAcmClass<'static, UsbDriver>,
+    decoder: &mut FrameDecoder,
+) -> Result<(), ()> {
+    let mut chunk = [0u8; 64];
+    loop {
+        match select(class.read_packet(&mut chunk), TO_HOST.receive()).await {
+            Either::First(n) => {
+                for &byte in &chunk[..n.map_err(|_| ())?] {
+                    let Some(message) = decoder.push(byte) else { continue };
+                    if let Reply::Now(reply) = handle(message) {
+                        send(class, &reply).await?;
+                    }
+                }
             }
-            // A transfer that is an exact multiple of the packet size needs a
-            // zero-length packet to tell the host it ended.
-            if n == max_packet && class.write_packet(&[]).await.is_err() {
-                break;
-            }
+            Either::Second(message) => send(class, &message).await?,
         }
     }
 }
@@ -184,24 +247,43 @@ async fn heartbeat_task(mut led: Output<'static>) -> ! {
     }
 }
 
-/// Bring the radio up (retrying forever, reporting failures over USB), then
-/// receive packets, and print a status line whenever 2 s pass without one.
-/// (A one-off "ready" message would be lost: it is sent before the host has
-/// opened the port, so the status is repeated instead.)
+/// Bring the radio up on the default eggtimer config (retrying forever), then
+/// receive packets. A config from the host replaces the running one.
 #[embassy_executor::task]
 async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
-    let mut stats = Stats::default();
+    let mut selection = Selection::Protocol(qcp::Protocol::Eggtimer(Default::default()));
+    let mut reported_fault = false;
     loop {
-        let mut delay = Delay;
-        if let Err(e) = radio.init(&mut delay, &RADIO).and_then(|_| radio.start_rx()) {
+        let config = selection.radio();
+        let applied = config
+            .as_ref()
+            .ok_or(())
+            .and_then(|c| sx1276::Config::try_from(c).map_err(|_| ()))
+            .and_then(|cfg| {
+                radio.init(&mut Delay, &cfg).and_then(|_| radio.start_rx()).map_err(|_| ())
+            });
+        if applied.is_err() {
             RADIO_OK.store(false, Ordering::Relaxed);
-            let mut line: String<96> = String::new();
-            let _ = write!(line, "radio init failed: {:?}", e);
-            enqueue_line(line.as_bytes());
-            Timer::after_millis(500).await;
+            if !core::mem::replace(&mut reported_fault, true) {
+                let _ = TO_HOST.try_send(Message::Error(ConfigError::RadioFault));
+            }
+            // A newer config may be the fix; otherwise try this one again.
+            if let Either::First(new) =
+                select(NEW_CONFIG.wait(), Timer::after_millis(500)).await
+            {
+                selection = new;
+                reported_fault = false;
+            }
             continue;
         }
         RADIO_OK.store(true, Ordering::Relaxed);
+        reported_fault = false;
+        CURRENT.lock(|c| c.set(Some(selection)));
+        let _ = TO_HOST.try_send(selection.message());
+
+        // Without a chip-checked CRC, noise and bit errors get through, so
+        // keep only packets that look like the ASCII (NMEA) eggtimer sends.
+        let ascii_only = !matches!(config.as_ref().map(sx1276::Config::try_from), Some(Ok(c)) if c.hw_crc);
 
         loop {
             // DIO0 stays high while a packet is pending, so drain until it is
@@ -210,64 +292,32 @@ async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
             while matches!(radio.payload_ready(), Ok(true)) {
                 let mut buf = [0u8; sx1276::MAX_PAYLOAD];
                 let Ok(n) = radio.read_packet(&mut buf) else { break };
-                stats.raw += 1;
-                if enqueue_payload(&buf[..n]) {
-                    stats.printed += 1;
-                } else {
-                    stats.dropped += 1;
-                }
+                forward_payload(&buf[..n], ascii_only);
             }
 
-            // Keep the stream clean while packets flow (NMEA sentences span
-            // packets): only report when nothing arrived for a while.
-            if let Either::Second(()) =
-                select(dio0.wait_for_high(), Timer::after(STATUS_PERIOD)).await
-            {
-                let mode = radio.mode().ok();
-                let rssi = radio.rssi_dbm().unwrap_or(0);
-                let khz = RADIO.frequency_hz / 1000;
-                let mut line: String<128> = String::new();
-                let _ = write!(
-                    line,
-                    "radio ok, mode={:?} ({}), {}.{:03} MHz ch{}, rssi={} dBm, packets raw={} printed={} dropped={}: waiting for packet",
-                    mode,
-                    if matches!(mode, Some(sx1276::Mode::Rx)) { "RX" } else { "NOT RX" },
-                    khz / 1000,
-                    khz % 1000,
-                    CHANNEL,
-                    rssi,
-                    stats.raw,
-                    stats.printed,
-                    stats.dropped,
-                );
-                enqueue_line(line.as_bytes());
+            match select(dio0.wait_for_high(), NEW_CONFIG.wait()).await {
+                Either::First(()) => {}
+                Either::Second(new) => {
+                    selection = new;
+                    break;
+                }
             }
         }
     }
 }
 
-/// Append a status/diagnostic line (`\r\n` terminated). Dropped whole if it does not fit.
-fn enqueue_line(line: &[u8]) -> bool {
-    if TX_PIPE.free_capacity() < line.len() + 2 {
-        return false;
-    }
-    let _ = TX_PIPE.try_write(line);
-    let _ = TX_PIPE.try_write(b"\r\n");
-    true
-}
-
-/// Append a received payload verbatim. Eggtimer payloads are chunks (<= 32
-/// bytes) of an NMEA text stream, so sentences span several packets and
-/// carry their own line endings; adding any would break them up.
-/// The CRC cannot be checked here, so a packet containing anything other
-/// than printable ASCII / CR / LF (noise or bit errors) is dropped whole.
-/// Returns whether it was queued.
-fn enqueue_payload(payload: &[u8]) -> bool {
+/// Queue a received payload for the host verbatim: eggtimer payloads are
+/// chunks (<= 32 bytes) of an NMEA text stream, so the host reassembles
+/// sentences. Dropped if empty, not ASCII when `ascii_only`, or if the host
+/// is not keeping up.
+fn forward_payload(payload: &[u8], ascii_only: bool) {
     let ascii = payload
         .iter()
         .all(|b| (0x20..=0x7E).contains(b) || matches!(b, b'\r' | b'\n'));
-    if payload.is_empty() || !ascii || TX_PIPE.free_capacity() < payload.len() {
-        return false;
+    if payload.is_empty() || (ascii_only && !ascii) {
+        return;
     }
-    TX_PIPE.try_write(payload).is_ok()
+    if let Ok(payload) = RawPayload::from_slice(payload) {
+        let _ = TO_HOST.try_send(Message::RawPayload(payload));
+    }
 }
