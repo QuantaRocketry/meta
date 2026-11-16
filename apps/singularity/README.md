@@ -6,11 +6,11 @@ A device manager designed for interacting with Quanta Rocketry's systems (and an
 
 ## Usage
 
-This project uses a justfile.
+Tasks are defined in `mise.toml`. Run `mise tasks` to list them.
 
 ```sh
-just install
-just dev
+mise run install
+mise run dev
 ```
 
 ## Installation

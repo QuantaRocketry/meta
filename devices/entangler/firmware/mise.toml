@@ -1,0 +1,8 @@
+[tasks.sim]
+description = "Run the entangler simulation"
+run = "cargo run -p entangler-simulation"
+
+[tasks.esp]
+description = "Flash and run the Waveshare ESP32-S3 firmware"
+dir = "{{config_root}}/entangler-waveshare-esp32s3"
+run = "cargo run --release"

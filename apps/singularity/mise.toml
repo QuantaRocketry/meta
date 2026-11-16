@@ -3,3 +3,28 @@ node = "lts"
 pnpm = "latest"
 pre-commit = "latest"
 prettier = "latest"
+
+[tasks.install]
+description = "Install Node.js dependencies"
+run = "pnpm install"
+
+[tasks.build]
+description = "Build the Tauri app"
+run = "pnpm tauri build"
+
+[tasks.dev]
+description = "Run the Tauri app in development mode"
+run = "pnpm tauri dev"
+
+[tasks.test]
+description = "Run the Rust tests for the Tauri backend"
+dir = "{{config_root}}/src-tauri"
+run = "cargo test"
+
+[tasks.check]
+description = "Type-check and build the frontend"
+run = ["pnpm tsc", "pnpm vite build"]
+
+[tasks.install-run]
+description = "Install dependencies, build, then run in development mode"
+depends = ["install", "build", "dev"]
