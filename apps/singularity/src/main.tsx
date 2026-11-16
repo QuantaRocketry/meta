@@ -11,6 +11,7 @@ import Configuration from "./routes/configuration";
 import Terminal from "./routes/terminal";
 import Locator from "./routes/locator";
 import ErrorProvider from "./utils/error";
+import { DeviceReplyToaster } from "./components/device-reply-toaster";
 import Monitor from "./routes/monitor";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -55,6 +56,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <TooltipProvider>
           <RouterProvider router={router} />
           <ErrorProvider />
+          <DeviceReplyToaster />
         </TooltipProvider>
       </SettingsProvider>
     </TauriProvider>

@@ -124,24 +124,10 @@ pub async fn send_serial_message(
     }
 }
 
-/// Tell a qcp device to listen for an eggtimer transmitter. The device
-/// answers with the radio config it applied, or an error; the answer is
-/// emitted as a `radio_config_result` event and logged in the terminal.
-#[tauri::command]
-pub async fn send_eggtimer_config(
-    center_frequency_hz: u32,
-    channel: u8,
-    state: tauri::State<'_, AppData>,
-) -> Result<(), String> {
-    use qcp::config::radio::protocol::eggtimer;
-
-    let channel = eggtimer::Channel::from_number(channel)
-        .ok_or_else(|| format!("Channel {} is not 0 to 7", channel))?;
-    let message = qcp::Message::Protocol(qcp::Protocol::Eggtimer(eggtimer::Protocol {
-        center_frequency_hz,
-        channel,
-    }));
-
+/// Send `message` to the connected qcp device. The device answers with the
+/// config it applied, or an error; the answer is emitted as a
+/// `radio_config_result` event and logged in the terminal.
+fn send_to_device(message: &qcp::Message, state: &AppData) -> Result<(), String> {
     let serial = state.serial.lock().unwrap();
     if serial.settings.protocol != settings::Protocol::Qcp {
         return Err("Set the serial protocol to qcp in the serial settings first; \
@@ -150,7 +136,25 @@ pub async fn send_eggtimer_config(
     }
     let port = serial.connected_port.as_ref().ok_or("No port connected")?;
     let mut port = port.try_clone().map_err(|e| e.to_string())?;
-    protocols::send_message(port.as_mut(), &message)
+    protocols::send_message(port.as_mut(), message)
+}
+
+/// Tell a qcp device which waveform to receive.
+#[tauri::command]
+pub async fn send_radio_config(
+    config: qcp::RadioConfig,
+    state: tauri::State<'_, AppData>,
+) -> Result<(), String> {
+    send_to_device(&qcp::Message::RadioConfig(config), &state)
+}
+
+/// Tell a qcp device which protocol to receive; it picks the waveform.
+#[tauri::command]
+pub async fn send_protocol(
+    protocol: qcp::Protocol,
+    state: tauri::State<'_, AppData>,
+) -> Result<(), String> {
+    send_to_device(&qcp::Message::Protocol(protocol), &state)
 }
 
 #[tauri::command]

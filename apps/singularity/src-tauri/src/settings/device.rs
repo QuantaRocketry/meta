@@ -9,11 +9,39 @@ pub enum DeviceSettings {
     Warp(WarpSettings),
     #[serde(rename = "Wio-L1")]
     WioL1(WioL1Settings),
+    Feather(FeatherSettings),
+}
+
+/// The two radio packets a qcp device accepts: the waveform, and the
+/// protocol that says what rides on it. Each is sent on its own.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+pub struct RadioSettings {
+    config: qcp::RadioConfig,
+    protocol: qcp::Protocol,
+}
+
+impl Default for RadioSettings {
+    fn default() -> Self {
+        Self {
+            config: qcp::RadioConfig::default(),
+            protocol: qcp::Protocol::default(),
+        }
+    }
+}
+
+impl RadioSettings {
+    /// Radio settings that start out on `protocol`'s waveform.
+    fn on_protocol(protocol: qcp::Protocol) -> Self {
+        Self {
+            config: protocol.radio_config().unwrap_or_default(),
+            protocol,
+        }
+    }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
 pub struct EntanglerSettings {
-    lora: LoRaSettings,
+    radio: RadioSettings,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
@@ -23,16 +51,21 @@ pub struct WarpSettings {
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
 pub struct WioL1Settings {
-    lora: LoRaSettings,
+    radio: RadioSettings,
 }
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
-pub struct LoRaSettings {
-    frequency: u32,
-    bandwidth: u32,
-    spreading_factor: u8,
-    sync_word: u8,
-    coding_rate: u8,
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+pub struct FeatherSettings {
+    radio: RadioSettings,
+}
+
+impl Default for FeatherSettings {
+    /// The feather boots listening for an eggtimer transmitter.
+    fn default() -> Self {
+        Self {
+            radio: RadioSettings::on_protocol(qcp::Protocol::Eggtimer(Default::default())),
+        }
+    }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
@@ -94,22 +127,6 @@ pub fn get_device_variants() -> Vec<DeviceSettings> {
         DeviceSettings::Entangler(EntanglerSettings::default()),
         DeviceSettings::Warp(WarpSettings::default()),
         DeviceSettings::WioL1(WioL1Settings::default()),
+        DeviceSettings::Feather(FeatherSettings::default()),
     ]
-}
-
-#[tauri::command]
-pub async fn set_device_variant(
-    device: String,
-    state: tauri::State<'_, AppData>,
-) -> Result<(), String> {
-    let settings = match device.as_str() {
-        "Entangler" => DeviceSettings::Entangler(EntanglerSettings::default()),
-        "Warp" => DeviceSettings::Warp(WarpSettings::default()),
-        "Wio-L1" => DeviceSettings::WioL1(WioL1Settings::default()),
-        _ => return Err(format!("No matching device in backend: {}", device)),
-    };
-
-    let mut board_settings = state.board_settings.lock().unwrap();
-    *board_settings = Some(settings);
-    Ok(())
 }

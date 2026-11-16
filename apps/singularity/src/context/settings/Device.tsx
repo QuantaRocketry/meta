@@ -1,11 +1,10 @@
-export const DEVICE_VARIANTS = ["Entangler", "Warp", "Wio-L1"] as const;
+import type { Protocol } from "@/generated/qcp/Protocol";
+import type { RadioConfig } from "@/generated/qcp/RadioConfig";
 
-export interface LoraSettings {
-  frequency: number;
-  bandwidth: number;
-  spreading_factor: number;
-  sync_word: number;
-  coding_rate: number;
+/** The two radio packets a qcp device accepts. Each is sent on its own. */
+export interface RadioSettings {
+  config: RadioConfig;
+  protocol: Protocol;
 }
 
 export interface DeploymentSettings {
@@ -15,19 +14,23 @@ export interface DeploymentSettings {
   main_altitude: number;
 }
 
-export interface EntanglerSettings {
-  lora: LoraSettings;
-}
-
-export interface WarpSettings {
+/**
+ * Everything a device can be configured with. A device has some subset of
+ * these, and the Configuration page renders one card per capability it has
+ * (see `components/capabilities`).
+ */
+export interface Capabilities {
+  radio: RadioSettings;
   deployment: DeploymentSettings;
 }
 
-export interface WioL1Settings {
-  lora: LoraSettings;
-}
+export type CapabilityKey = keyof Capabilities;
 
-export type DeviceSettings =
-  | { type: "Entangler"; data: EntanglerSettings }
-  | { type: "Warp"; data: WarpSettings }
-  | { type: "Wio-L1"; data: WioL1Settings };
+/**
+ * The backend (`get_device_variants`) is the source of truth for which
+ * devices exist and what each has, so nothing here lists them.
+ */
+export interface DeviceSettings {
+  type: string;
+  data: Partial<Capabilities>;
+}

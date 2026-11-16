@@ -80,6 +80,9 @@ importers:
       react-router-dom:
         specifier: ^7.1.1
         version: 7.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -1993,6 +1996,16 @@ packages:
 
   set-cookie-parser@2.7.1:
     resolution: {integrity: sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==}
+
+  sonner@2.0.8:
+    resolution: {integrity: sha512-UM/ByIoFra8yzV75n1o0Puu0bw5U/9UNnDacrJNspekBewIfsQ3D6ez1nvlWpt7aTsO6rujQtifBpycwIivqlg==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -3980,6 +3993,13 @@ snapshots:
   semver@6.3.1: {}
 
   set-cookie-parser@2.7.1: {}
+
+  sonner@2.0.8(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.18
 
   source-map-js@1.2.1: {}
 

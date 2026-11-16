@@ -1,16 +1,14 @@
-import { EggtimerRadioForm } from "@/components/forms/eggtimer-radio-form";
 import { SerialControlWidget } from "@/components/header-widgets/serial-control";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import Page from "@/utils/page";
 import { invoke } from "@tauri-apps/api/core";
-import { useContext } from "react";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AiOutlineDownload, AiOutlineUpload } from "react-icons/ai";
-import { DEVICE_VARIANTS, DeviceSettings } from "../context/settings/Device";
+import { CapabilityCard } from "@/components/capabilities";
+import type { CapabilityKey, DeviceSettings } from "../context/settings/Device";
 import { SettingsContext } from "../context/SettingsProvider";
 import { showError } from "../utils/error";
-import { DeploymentOptions, LoraOptions } from "../utils/options";
 import {
   Select,
   SelectContent,
@@ -22,46 +20,31 @@ import {
 
 export function DeviceSelectorWidget() {
   const { deviceSettings, setDeviceSettings } = useContext(SettingsContext);
-
-  async function setDeviceVariant(p: DeviceSettings["type"]) {
-    await invoke("set_device_variant", { device: p as string });
-    getDeviceSettings();
-  }
-
-  async function getDeviceSettings() {
-    invoke("get_device_settings")
-      .then((p) => {
-        if (p) {
-          setDeviceSettings(p as DeviceSettings);
-        }
-      })
-      .catch((e) => {
-        console.error(e);
-        // setDeviceSelect();
-      });
-  }
+  const [variants, setVariants] = useState<DeviceSettings[]>([]);
 
   useEffect(() => {
-    if (!deviceSettings) {
-      getDeviceSettings();
-    }
+    invoke<DeviceSettings[]>("get_device_variants")
+      .then(setVariants)
+      .catch(showError);
   }, []);
 
+  async function selectDevice(type: string) {
+    const variant = variants.find((v) => v.type === type);
+    if (!variant) return;
+    await invoke("set_device_settings", { settings: variant });
+    setDeviceSettings(variant);
+  }
+
   return (
-    <Select
-      onValueChange={(value) => {
-        setDeviceVariant(value as DeviceSettings["type"]);
-      }}
-      value={deviceSettings?.type}
-    >
+    <Select onValueChange={selectDevice} value={deviceSettings?.type}>
       <SelectTrigger>
         <SelectValue placeholder="Select a device" />
       </SelectTrigger>
       <SelectContent position={"popper"}>
         <SelectGroup>
-          {DEVICE_VARIANTS.map((value, index) => (
-            <SelectItem key={index} value={value}>
-              {value}
+          {variants.map((v) => (
+            <SelectItem key={v.type} value={v.type}>
+              {v.type}
             </SelectItem>
           ))}
         </SelectGroup>
@@ -71,7 +54,7 @@ export function DeviceSelectorWidget() {
 }
 
 function Options() {
-  const { deviceSettings } = useContext(SettingsContext);
+  const { deviceSettings, setDeviceSettings } = useContext(SettingsContext);
 
   if (!deviceSettings) {
     return (
@@ -84,14 +67,25 @@ function Options() {
     );
   }
 
+  const capabilities = Object.keys(deviceSettings.data) as CapabilityKey[];
+
   return (
     <div className="space-y-4">
-      {deviceSettings &&
-        deviceSettings.data &&
-        "lora" in deviceSettings.data && <LoraOptions />}
-      {deviceSettings &&
-        deviceSettings.data &&
-        "deployment" in deviceSettings.data && <DeploymentOptions />}
+      {capabilities.map((capability) => (
+        <CapabilityCard
+          key={`${deviceSettings.type}-${capability}`}
+          capability={capability}
+          value={deviceSettings.data[capability]!}
+          onChange={(value) =>
+            setDeviceSettings((current) =>
+              current && {
+                ...current,
+                data: { ...current.data, [capability]: value },
+              },
+            )
+          }
+        />
+      ))}
     </div>
   );
 }
@@ -124,7 +118,6 @@ export default function Configuration() {
       widgets={[<DeviceSelectorWidget />, <SerialControlWidget />]}
     >
       <Options />
-      <EggtimerRadioForm />
       <ButtonGroup
         style={{ position: "absolute", right: "1.25rem", bottom: "1.25rem" }}
       >
