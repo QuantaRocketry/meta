@@ -28,3 +28,11 @@ run = ["pnpm tsc", "pnpm vite build"]
 [tasks.install-run]
 description = "Install dependencies, build, then run in development mode"
 depends = ["install", "build", "dev"]
+
+[tasks."gen:types"]
+description = "Regenerate src/generated/qcp from the qcp Rust types"
+dir = "{{config_root}}"
+run = [
+  "rm -rf src/generated/qcp",
+  "TS_RS_EXPORT_DIR={{config_root}}/src/generated/qcp cargo test -p qcp --features ts --manifest-path ../../Cargo.toml",
+]

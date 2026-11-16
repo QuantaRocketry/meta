@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 /// Gaussian filter applied to the data before modulation, given as its
 /// bandwidth-time product.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum GfskPulseShape {
     /// Unfiltered: plain 2-FSK.
     NoFilter,
@@ -19,6 +20,7 @@ pub enum GfskPulseShape {
 
 /// The bit pattern the preamble repeats.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum PreamblePattern {
     /// `0xAA` (`10101010`).
     Alternating10,
@@ -39,6 +41,7 @@ impl PreamblePattern {
 /// The sync word that follows the preamble, up to [`SyncWord::MAX_LEN`] bytes,
 /// the first byte being sent first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct SyncWord {
     bytes: [u8; Self::MAX_LEN],
     len: u8,
@@ -70,6 +73,7 @@ impl SyncWord {
 
 /// How the receiver learns where the payload ends.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum PacketLength {
     /// A length byte precedes the payload.
     Variable,
@@ -79,6 +83,7 @@ pub enum PacketLength {
 
 /// The CRC that ends the packet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum GfskCrc {
     None,
     /// A 16-bit CRC, sent most significant byte first.
@@ -101,6 +106,7 @@ impl GfskCrc {
 
 /// Coding applied to the packet bits after the CRC.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum DataCoding {
     None,
     Manchester,
@@ -109,6 +115,7 @@ pub enum DataCoding {
 
 /// The (G)FSK waveform.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct GfskConfig {
     /// Bit rate in bits/second.
     pub bit_rate: u32,

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// SF5 and SF6 are not available on every radio.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum SpreadingFactor {
     SF5,
     SF6,
@@ -35,6 +36,7 @@ impl SpreadingFactor {
 
 /// Chirp bandwidth. The names are the nominal kHz (`Bw7` is 7.8 kHz, `Bw31` is 31.25 kHz).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum LoraBandwidth {
     Bw7,
     Bw10,
@@ -68,6 +70,7 @@ impl LoraBandwidth {
 
 /// Forward error correction rate: 4 data bits are sent as 5 to 8 coded bits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum CodingRate {
     Cr45,
     Cr46,
@@ -77,6 +80,7 @@ pub enum CodingRate {
 
 /// Whether the packet carries a PHY header.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum LoraHeader {
     /// The header announces the payload length, coding rate and whether a CRC follows.
     Explicit,
@@ -86,6 +90,7 @@ pub enum LoraHeader {
 
 /// The LoRa waveform.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct LoraConfig {
     pub spreading_factor: SpreadingFactor,
     pub bandwidth: LoraBandwidth,

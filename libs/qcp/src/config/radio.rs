@@ -12,6 +12,7 @@ pub use protocol::Protocol;
 
 /// The modulation scheme in use, along with its scheme-specific waveform.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum PhyConfig {
     Lora(LoraConfig),
     Gfsk(GfskConfig),
@@ -23,6 +24,7 @@ pub enum PhyConfig {
 /// Each app maps it onto the settings of the radio it has, and chooses the
 /// radio-specific ones itself (transmit power, receiver filter bandwidth, ...).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct RadioConfig {
     /// Carrier frequency in Hz (e.g. `915_735_000` for 915.735 MHz).
     pub frequency_hz: u32,

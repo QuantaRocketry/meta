@@ -7,3 +7,9 @@ edition = "2024"
 heapless = { workspace = true, features = ["serde"] }
 postcard = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+ts-rs = { version = "12", optional = true }
+
+[features]
+# TypeScript bindings for the config types. For generating them only (see the
+# `gen:types` mise task): ts-rs needs std, so don't enable this on firmware.
+ts = ["dep:ts-rs"]

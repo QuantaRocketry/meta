@@ -27,6 +27,7 @@ pub const SYNC_WORD: SyncWord = match SyncWord::new(&[0x2D, 0xD4]) {
 /// [`carrier_frequency_hz`](Self::carrier_frequency_hz)); that is the
 /// frequency a receiver has to be tuned to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export, rename = "EggtimerProtocol"))]
 pub struct Protocol {
     /// Centre frequency in Hz that the channel offsets are applied to.
     pub center_frequency_hz: u32,
@@ -80,6 +81,7 @@ impl From<Protocol> for RadioConfig {
 /// transmitter). Channels 1 to 7 follow it at 250 kHz spacing, starting
 /// 235 kHz above the centre; those offsets are inferred, not measured.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Channel {
     #[default]
     Ch0,

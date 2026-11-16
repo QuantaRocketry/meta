@@ -6,6 +6,7 @@ pub mod uts;
 
 /// The application-layer telemetry protocol carried over the link.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub enum Protocol {
     #[default]
     Quanta,
