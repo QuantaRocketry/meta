@@ -14,7 +14,7 @@ use embassy_usb::{
     driver::{Driver, EndpointError},
 };
 use heapless::{String, format};
-use qcp::{Message, MessageKind};
+use qcp::{FRAME_SIZE_MAX, FrameDecoder, Message, MessageKind};
 use static_cell::StaticCell;
 
 type UsbDriver = usb::Driver<'static, usb::vbus_detect::HardwareVbusDetect>;
@@ -83,51 +83,8 @@ fn other_kind(message: &Message) -> &'static str {
         Message::RadioConfig(_) => "RadioConfig",
         Message::Protocol(_) => "Protocol",
         Message::Battery(_) => "Battery",
-    }
-}
-
-/// Reassembles zero-terminated COBS frames from a byte stream and decodes
-/// them into messages.
-struct FrameDecoder {
-    // Room for the largest message plus COBS overhead and the delimiter.
-    buf: [u8; qcp::MESSAGE_SIZE_MAX + 4],
-    len: usize,
-    overflowed: bool,
-}
-
-impl FrameDecoder {
-    const fn new() -> Self {
-        Self {
-            buf: [0; qcp::MESSAGE_SIZE_MAX + 4],
-            len: 0,
-            overflowed: false,
-        }
-    }
-
-    /// Feed one byte, returning a message once a complete frame decodes.
-    fn push(&mut self, byte: u8) -> Option<Message> {
-        if byte != 0 {
-            if self.len < self.buf.len() {
-                self.buf[self.len] = byte;
-                self.len += 1;
-            } else {
-                self.overflowed = true;
-            }
-            return None;
-        }
-
-        let len = core::mem::take(&mut self.len);
-        if core::mem::take(&mut self.overflowed) || len == 0 {
-            return None;
-        }
-
-        match postcard::from_bytes_cobs::<Message>(&mut self.buf[..len]) {
-            Ok(message) => Some(message),
-            Err(_) => {
-                info!("QCP: failed to decode frame");
-                None
-            }
-        }
+        Message::RawPayload(_) => "RawPayload",
+        Message::Error(_) => "Error",
     }
 }
 
@@ -136,8 +93,8 @@ async fn send_message<'d, D: Driver<'d>>(
     class: &mut CdcAcmClass<'d, D>,
     message: &Message,
 ) -> Result<(), Disconnected> {
-    let mut out = [0u8; qcp::MESSAGE_SIZE_MAX + 4];
-    match postcard::to_slice_cobs(message, &mut out) {
+    let mut out = [0u8; FRAME_SIZE_MAX];
+    match qcp::encode_frame(message, &mut out) {
         Ok(encoded) => write_all(class, encoded).await,
         Err(_) => {
             info!("QCP: failed to encode message");

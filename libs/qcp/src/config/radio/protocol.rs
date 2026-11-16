@@ -13,6 +13,17 @@ pub enum Protocol {
     Uts,
 }
 
+impl Protocol {
+    /// The waveform a receiver tunes to for this protocol, or `None` for a
+    /// protocol whose waveform is not defined yet.
+    pub fn radio_config(self) -> Option<crate::RadioConfig> {
+        match self {
+            Protocol::Eggtimer(eggtimer) => Some(eggtimer.into()),
+            Protocol::Quanta | Protocol::Uts => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

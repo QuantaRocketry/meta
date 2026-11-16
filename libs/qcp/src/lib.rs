@@ -2,6 +2,7 @@
 
 pub mod config;
 mod coordinate;
+mod frame;
 mod message;
 mod state;
 
@@ -11,15 +12,16 @@ pub use config::radio::{
     SpreadingFactor, SyncWord,
 };
 pub use coordinate::Coordinate;
-pub use message::{Message, MessageKind};
+pub use frame::{FRAME_SIZE_MAX, FrameDecoder, encode_frame};
+pub use message::{ConfigError, Message, MessageKind, RAW_PAYLOAD_MAX, RawPayload};
 pub use postcard::{Error, Result};
 pub use state::{BatteryState, ChargeStatus, TrackedPOI};
 
 /// Largest number of bytes a single encoded `Message` can occupy on the wire.
 ///
-/// Sized for a `TrackedPOI` with a full-length `id`, plus headroom for
+/// Sized for a `RawPayload` carrying a full radio packet, plus headroom for
 /// future message variants.
-pub const MESSAGE_SIZE_MAX: usize = 64;
+pub const MESSAGE_SIZE_MAX: usize = 128;
 
 /// Serialize `message` into `buf`, returning the slice of `buf` that was
 /// written to.
