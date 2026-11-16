@@ -1,0 +1,7 @@
+[tools]
+just = "latest"
+node = "latest"
+pnpm = "latest"
+pre-commit = "latest"
+prettier = "latest"
+rust = "latest"

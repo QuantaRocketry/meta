@@ -4,3 +4,6 @@
 [submodule "crates/mock-embedded-io"]
 	path = crates/mock-embedded-io
 	url = git@github.com:Gibson431/mock-embedded-io.git
+[submodule "singularity/src-tauri/protocols/uts-odin-protocol"]
+	path = singularity/src-tauri/protocols/uts-odin-protocol
+	url = git@github.com:Gibson431/uts-odin-protocol.git
