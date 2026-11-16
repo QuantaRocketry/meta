@@ -2909,7 +2909,6 @@ dependencies = [
 [[package]]
 name = "qcp"
 version = "0.1.0"
-source = "git+https://github.com/QuantaRocketry/meta.git#65177ebd5b390ed8a83a32e50ebf345b78f7d35b"
 dependencies = [
  "heapless",
  "postcard",

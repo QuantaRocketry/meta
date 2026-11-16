@@ -10,7 +10,7 @@ members = [
     "crates/solar-p1",
     "crates/warp",
 ]
-exclude = ["crates/mock-embedded-io"]
+exclude = ["crates/mock-embedded-io", "singularity/src-tauri"]
 
 [workspace.dependencies]
 assign-resources = "0.5.0"
