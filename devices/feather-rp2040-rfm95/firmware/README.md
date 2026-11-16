@@ -6,7 +6,7 @@ CDC serial port (COBS-framed postcard). The host chooses what to receive by send
 `Protocol` (e.g. eggtimer centre frequency + channel) or a GFSK `RadioConfig`.
 
 Tasks: `radio_task` (init with retry, receive, apply configs), `cdc_task` (qcp over the serial
-port), `usb_task` (USB device), `heartbeat_task` (LED).
+port), `usb_task` (USB device), `heartbeat_task` (LED), `neopixel_task` (status NeoPixel).
 
 ## Build / flash
 
@@ -34,3 +34,5 @@ filter with 50 % margin over bitrate + 2 x deviation; eggtimer gets 125 kHz).
 The TX's CRC-16/XMODEM can't be checked by the SX1276 (hardware CRC is off), so while the chip
 cannot check the CRC, packets with any non-ASCII byte are dropped. Payloads are chunks of an NMEA
 stream and are forwarded verbatim. The red LED blinks at 1 Hz while the radio runs, 5 Hz if not.
+The NeoPixel (GPIO4) flashes blue once per received packet, and three times in a second when a
+config from the host is applied.

@@ -15,11 +15,14 @@
 //! | RFM_RST      | 17   | reset               |
 //! | RFM_DIO0     | 21   | PayloadReady        |
 //! | red LED (D13)| 13   | heartbeat           |
+//! | NeoPixel     | 4    | packet / config     |
 //!
 //! Tasks: `radio_task` (init/retry, receive, apply configs), `cdc_task` (qcp
-//! over the USB serial port), `usb_task` (USB device), `heartbeat_task` (LED).
+//! over the USB serial port), `usb_task` (USB device), `heartbeat_task` (LED), `neopixel_task` (status pixel).
 #![no_std]
 #![no_main]
+
+mod neopixel;
 
 use core::cell::Cell;
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -28,7 +31,9 @@ use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_rp::bind_interrupts;
 use embassy_rp::gpio::{Input, Level, Output, Pull};
-use embassy_rp::peripherals::{SPI1, USB};
+use embassy_rp::peripherals::{DMA_CH0, PIO0, SPI1, USB};
+use embassy_rp::pio::{self, Pio};
+use embassy_rp::pio_programs::ws2812::{PioWs2812, PioWs2812Program};
 use embassy_rp::spi::{self, Blocking, Spi};
 use embassy_rp::usb::{Driver, InterruptHandler};
 use embassy_sync::blocking_mutex::Mutex;
@@ -45,6 +50,8 @@ use static_cell::StaticCell;
 
 bind_interrupts!(struct Irqs {
     USBCTRL_IRQ => InterruptHandler<USB>;
+    PIO0_IRQ_0 => pio::InterruptHandler<PIO0>;
+    DMA_IRQ_0 => embassy_rp::dma::InterruptHandler<DMA_CH0>;
 });
 
 type RadioDevice = ExclusiveDevice<Spi<'static, SPI1, Blocking>, Output<'static>, NoDelay>;
@@ -133,9 +140,14 @@ async fn main(spawner: Spawner) {
 
     let led = Output::new(p.PIN_13, Level::Low);
 
+    let Pio { mut common, sm0, .. } = Pio::new(p.PIO0, Irqs);
+    let program = PioWs2812Program::new(&mut common);
+    let pixel = PioWs2812::new(&mut common, sm0, p.DMA_CH0, Irqs, p.PIN_4, &program);
+
     spawner.spawn(usb_task(usb).unwrap());
     spawner.spawn(cdc_task(class).unwrap());
     spawner.spawn(heartbeat_task(led).unwrap());
+    spawner.spawn(neopixel::neopixel_task(pixel).unwrap());
     spawner.spawn(radio_task(radio, dio0).unwrap());
 }
 
@@ -253,6 +265,7 @@ async fn heartbeat_task(mut led: Output<'static>) -> ! {
 async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
     let mut selection = Selection::Protocol(qcp::Protocol::Eggtimer(Default::default()));
     let mut reported_fault = false;
+    let mut from_host = false;
     loop {
         let config = selection.radio();
         let applied = config
@@ -272,6 +285,7 @@ async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
                 select(NEW_CONFIG.wait(), Timer::after_millis(500)).await
             {
                 selection = new;
+                from_host = true;
                 reported_fault = false;
             }
             continue;
@@ -280,6 +294,9 @@ async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
         reported_fault = false;
         CURRENT.lock(|c| c.set(Some(selection)));
         let _ = TO_HOST.try_send(selection.message());
+        if core::mem::take(&mut from_host) {
+            neopixel::notify(neopixel::Notify::ConfigApplied);
+        }
 
         // Without a chip-checked CRC, noise and bit errors get through, so
         // keep only packets that look like the ASCII (NMEA) eggtimer sends.
@@ -292,6 +309,7 @@ async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
             while matches!(radio.payload_ready(), Ok(true)) {
                 let mut buf = [0u8; sx1276::MAX_PAYLOAD];
                 let Ok(n) = radio.read_packet(&mut buf) else { break };
+                neopixel::notify(neopixel::Notify::PacketReceived);
                 forward_payload(&buf[..n], ascii_only);
             }
 
@@ -299,6 +317,7 @@ async fn radio_task(mut radio: Radio, mut dio0: Input<'static>) -> ! {
                 Either::First(()) => {}
                 Either::Second(new) => {
                     selection = new;
+                    from_host = true;
                     break;
                 }
             }

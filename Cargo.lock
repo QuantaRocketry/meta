@@ -1431,6 +1431,7 @@ dependencies = [
  "panic-halt",
  "portable-atomic",
  "qcp",
+ "smart-leds",
  "static_cell",
  "sx1276",
 ]
